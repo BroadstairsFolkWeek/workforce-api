@@ -30,7 +30,8 @@
         "ms-azuretools.vscode-docker",
         "ms-azuretools.vscode-bicep",
         "ms-azuretools.vscode-azurecontainerapps",
-        "ms-vscode.azure-account"
+        "ms-vscode.azure-account",
+        "GitHub.vscode-github-actions"
       ]
     }
   }
