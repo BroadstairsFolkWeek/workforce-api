@@ -10,6 +10,9 @@ param tags object
 @description('Array that represents desired traffic distribution between container apps revisions')
 param trafficDistribution array
 
+@description('Name of the Azure Container Registry that will be used to pull container images from')
+param containerRegistryName string
+
 @description('Module that provisions common resources that will be re-used by other resources in the deployment, like managed identities')
 module common 'modules/common.bicep' = {
   name: 'common-resources'
@@ -38,7 +41,9 @@ module aca_common 'modules/aca-common.bicep' = {
     location: location
     logAnalyticsWorkspaceId: azure_monitor.outputs.logAnalyticsWorkspaceId
     managedIdentityId: common.outputs.managedIdentityId
+    managedIdentityPrincipalId: common.outputs.managedIdentityPrincipalId
     tags: tags
+    containerRegistryName: containerRegistryName
   }
 }
 

@@ -14,3 +14,4 @@ param trafficDistribution = [
   }
 ]
 
+param containerRegistryName = 'workforceservicesacrdev'
