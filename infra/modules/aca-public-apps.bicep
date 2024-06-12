@@ -19,7 +19,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
     configuration: {
       ingress: { 
         external: true
-        targetPort: 80
+        targetPort: 3000
         transport: 'http'
         clientCertificateMode: 'ignore'
         traffic: trafficDistribution
@@ -30,24 +30,19 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
     template: {
       containers: [
         {
-          image: 'mcr.microsoft.com/azuredocs/aks-helloworld:v1'
-          name: 'aca-hello-world'
+          name: 'workforce-api'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
           env: [
-            {
-              name: 'TITLE'
-              value: 'Hello World from Azure Container Apps (ACA)- V2!'
-            }
           ]
           probes: [
             {
               type: 'Liveness'
               httpGet: {
                 path: '/'
-                port: 80
+                port: 3000
               }
               initialDelaySeconds: 3
               periodSeconds: 3
@@ -57,7 +52,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
               type: 'Readiness'
               httpGet: {
                 path: '/'
-                port: 80
+                port: 3000
               }
               initialDelaySeconds: 3
               periodSeconds: 3
