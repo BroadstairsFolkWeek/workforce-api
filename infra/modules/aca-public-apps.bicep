@@ -31,6 +31,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
       containers: [
         {
           name: 'workforce-api'
+          image: 'mcr.microsoft.com/azuredocs/aks-helloworld:v1'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
