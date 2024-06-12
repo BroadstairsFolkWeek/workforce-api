@@ -1,6 +1,5 @@
 using '../main.bicep'
 
-param acaResourceGroupName = 'rg-bfwworkforceservices-${environment}'
 param environment = 'dev'
 param location = 'uksouth'
 
@@ -15,4 +14,3 @@ param trafficDistribution = [
   }
 ]
 
-// Command to get revision names: az containerapp revision list --name aca-hello-world --resource-group rg-aca-helloworld-neu-dev --query [].name -o tsv
