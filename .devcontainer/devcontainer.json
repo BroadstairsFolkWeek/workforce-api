@@ -7,7 +7,10 @@
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    }
   },
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -24,7 +27,10 @@
         "esbenp.prettier-vscode",
         "ms-vscode-remote.remote-containers",
         "Orta.vscode-jest",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "ms-azuretools.vscode-bicep",
+        "ms-azuretools.vscode-azurecontainerapps",
+        "ms-vscode.azure-account"
       ]
     }
   }
