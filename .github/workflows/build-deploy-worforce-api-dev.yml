@@ -33,7 +33,7 @@ jobs:
       - name: Find Azure Container Registry in Resource Group
         id: queryAcr
         run: |
-          echo "::set-output name=acrLoginServer::$(az acr list --resource-group ${{ env.resourceGroupName }} --query '[0].loginServer' --output tsv)"
+          echo "acrLoginServer=$(az acr list --resource-group ${{ env.resourceGroupName }} --query '[0].loginServer' --output tsv)" >> "$GITHUB_ENV"
 
       - name: Print Container Registry Login Server
         run: |
