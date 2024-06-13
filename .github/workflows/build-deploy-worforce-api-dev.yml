@@ -33,7 +33,7 @@ jobs:
       - name: Find Azure Container Registry in Resource Group
         id: queryAcr
         run: |
-          az acr list --resource-group ${{ env.resourceGroupName }} --query "[].{acrLoginServer:loginServer}" --output table
+          echo "::set-output name=acrLoginServer::$(az acr list --resource-group ${{ env.resourceGroupName }} --query '[0].loginServer' --output tsv)"
 
       - name: Print Container Registry Login Server
         run: |
