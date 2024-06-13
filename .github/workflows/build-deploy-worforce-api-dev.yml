@@ -37,7 +37,7 @@ jobs:
 
       - name: Print Container Registry Login Server
         run: |
-          echo "Container Registry Login Server: ${{ steps.queryAcr.outputs.acrLoginServer }}"
+          echo "Container Registry Login Server: $acrLoginServer"
 
       # - name: Log in to Azure Container Registry
       #   uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
