@@ -37,7 +37,7 @@ jobs:
 
       - name: Log in to Azure Container Registry
         run: |
-          docker login ${{ env.acrLoginServer }}.azurecr.io -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name workforceservicesacrdev.azurecr.io --expose-token --only-show-errors --query 'accessToken' --output tsv)
+          docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name workforceservicesacrdev.azurecr.io --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
       - name: Find Managed Identity in Resource Group
         run: |
