@@ -10,6 +10,7 @@ on:
 
 env:
   AZURE_CORE_OUTPUT: "none"
+  resourceGroupName: rg-bfwworkforceservices-dev
 
 permissions:
   id-token: write
@@ -29,10 +30,26 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and deploy to dev
-        uses: azure/container-apps-deploy-action@5f5f4c56ca90376e3cfbd76ba8fe8533c784e655
-        with:
-          appSourcePath: ${{ github.workspace }}
-          acrName: workforceservicesacrdev
-          containerAppName: workforce-api
-          resourceGroup: rg-bfwworkforceservices-dev
+      - name: Find Azure Container Registry in Resource Group
+        id: queryAcr
+        run: |
+          az acr list --resource-group ${{ env.resourceGroupName }} --query "[].{acrLoginServer:loginServer}" --output table
+
+      - name: Print Container Registry Login Server
+        run: |
+          echo "Container Registry Login Server: ${{ steps.queryAcr.outputs.acrLoginServer }}"
+
+      # - name: Log in to Azure Container Registry
+      #   uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
+      #   with:
+      #     registry: workforceservicesacrdev.azurecr.io
+      #     username: ${{ secrets.AZURE_CLIENT_ID }}
+      #     password: ${{ secrets.TODO }}
+
+      # - name: Build and deploy to dev
+      #   uses: azure/container-apps-deploy-action@5f5f4c56ca90376e3cfbd76ba8fe8533c784e655
+      #   with:
+      #     appSourcePath: ${{ github.workspace }}
+      #     acrName: workforceservicesacrdev
+      #     containerAppName: workforce-api
+      #     resourceGroup: ${{ env.resourceGroupName }}
