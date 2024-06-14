@@ -8,6 +8,18 @@ param containerImage string
 @maxLength(10)
 param resourceUniqueNameElement string
 
+@description('The Client ID used for authenticating the workforce-api application to the AAD authentication provider')
+@secure()
+param appAadClientId string
+
+@description('The Client Secret used for authenticating the workforce-api application to the AAD authentication provider')
+@secure()
+param appAadClientSecret string
+
+@description('The Tenant ID of the AAD authentication provider')
+@secure()
+param appAadTenantId string
+
 @description('Name of the environment these provisioned resources relate to. Will be incoporated into resource names.')
 @allowed(['dev', 'test', 'prod'])
 param environmentName string
@@ -64,9 +76,16 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
         transport: 'http'
         clientCertificateMode: 'ignore'
         traffic: trafficDistribution
+        allowInsecure: false
       }
       activeRevisionsMode: 'Multiple'
       maxInactiveRevisions: 2
+      secrets: [
+        {
+          name: 'app-client-secret'
+          value: appAadClientSecret
+        }
+      ]
     }
     template: {
       containers: [
@@ -106,6 +125,33 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
       scale: {
         minReplicas: 0
         maxReplicas: 1
+      }
+    }
+  }
+
+  resource authConfigs 'authConfigs' = {
+    name: 'current'
+    properties: {
+      globalValidation: {
+        unauthenticatedClientAction: 'Return401'
+      }
+      login: {
+        routes: {
+          logoutEndpoint: '/logout'
+        }
+      }
+      identityProviders: {
+        azureActiveDirectory: {
+          enabled: true
+          registration: {
+            clientId: appAadClientId
+            clientSecretSettingName: 'app-client-secret'
+            openIdIssuer: '${environment().authentication.loginEndpoint}v2.0/${appAadTenantId}'
+          }
+        }
+      }
+      platform:{
+        enabled: true
       }
     }
   }
