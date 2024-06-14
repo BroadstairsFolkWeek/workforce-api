@@ -55,5 +55,5 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
-          template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api.bicep
+          template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
           parameters: ${{ github.workspace }}/infra/workforce-api-aca/parameters/dev.bicepparam
