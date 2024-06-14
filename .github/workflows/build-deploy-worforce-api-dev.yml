@@ -6,6 +6,8 @@ on:
     paths-ignore:
       - "infra/**"
       - "!infra/workforce-api/**"
+      - ".github/workflows/**"
+      - "!.github/workflows/build-deploy-worforce-api-dev.yml"
 
   workflow_dispatch:
 
@@ -53,5 +55,5 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
-          template: ${{ github.workspace }}/infra/workforce-api/workforce-api.bicep
-          parameters: ${{ github.workspace }}/infra/workforce-api/parameters/dev.bicepparam
+          template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api.bicep
+          parameters: ${{ github.workspace }}/infra/workforce-api-aca/parameters/dev.bicepparam
