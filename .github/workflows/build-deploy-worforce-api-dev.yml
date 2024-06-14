@@ -4,13 +4,15 @@ on:
     branches:
       - "main"
     paths-ignore:
-      - "infra/*"
+      - "infra/**"
+      - "!infra/workforce-api/**"
 
   workflow_dispatch:
 
 env:
   AZURE_CORE_OUTPUT: "none"
-  resourceGroupName: rg-bfwworkforceservices-dev
+  resourceGroupName: "rg-bfwworkforceservices-dev"
+  RESOURCE_SUFFIX: "8db7e8c"
 
 permissions:
   id-token: write
@@ -37,31 +39,19 @@ jobs:
 
       - name: Log in to Azure Container Registry
         run: |
-          docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name workforceservicesacrdev.azurecr.io --expose-token --only-show-errors --query 'accessToken' --output tsv)
+          docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name $acrLoginServer --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
       - name: Build and push container image
         run: |
           docker build -t $acrLoginServer/workforce-api:latest .
           docker push $acrLoginServer/workforce-api:latest
+          echo "CONTAINER_IMAGE=$acrLoginServer/workforce-api:latest" >> "$GITHUB_ENV"
 
-      - name: Find Managed Identity in Resource Group
-        run: |
-          echo "managedIdentityId=$(az identity list --resource-group ${{ env.resourceGroupName }} --query '[0].id' --output tsv)" >> "$GITHUB_ENV"
-
-#az acr login --name workforceservicesacrdev.azurecr.io --expose-token --only-show-errors --query 'accessToken' --output tsv
-#docker login loginServer -u 00000000-0000-0000-0000-000000000000 -p accessToken
-
-# - name: Log in to Azure Container Registry
-#   uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
-#   with:
-#     registry: workforceservicesacrdev.azurecr.io
-#     username: ${{ secrets.AZURE_CLIENT_ID }}
-#     password: ${{ secrets.TODO }}
-
-# - name: Build and deploy to dev
-#   uses: azure/container-apps-deploy-action@5f5f4c56ca90376e3cfbd76ba8fe8533c784e655
-#   with:
-#     appSourcePath: ${{ github.workspace }}
-#     acrName: workforceservicesacrdev
-#     containerAppName: workforce-api
-#     resourceGroup: ${{ env.resourceGroupName }}
+      - name: Provision base resources
+        uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
+        with:
+          scope: resourcegroup
+          resourceGroupName: ${{ env.resourceGroupName }}
+          deploymentName: ${{ github.run_number }}
+          template: ${{ github.workspace }}/infra/workforce-api/workforce-api.bicep
+          parameters: ${{ github.workspace }}/infra/workforce-api/parameters/dev.bicepparam
