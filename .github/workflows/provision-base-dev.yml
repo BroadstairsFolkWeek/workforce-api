@@ -4,9 +4,7 @@ on:
     branches:
       - "main"
     paths:
-      - "infra/base/base.bicep"
-      - "infra/base/parameters/dev.bicepparam"
-      - "infra/base/modules/*"
+      - "infra/base/**"
 
   workflow_dispatch:
 

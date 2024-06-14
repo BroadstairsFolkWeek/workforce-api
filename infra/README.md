@@ -42,10 +42,14 @@ az ad sp create --id $ClientId
 
 From the JSON output, record the id as this will be used as the $ServicePrincipalObjectId below.
 
-Assign the contributor role to the service principal, scoped to the resource group. Replace $ServicePrincipalObjectId, $subscriptionId and $resourceGroupName below accordingly.
+Assign both the Contributor and Role Based Access Administrator roles to the service principal,
+scoped to the resource group. Replace $ServicePrincipalObjectId, $subscriptionId and $resourceGroupName
+below accordingly.
 
 ```
 az role assignment create --role contributor --subscription $subscriptionId --assignee-object-id $ServicePrincipalObjectId --assignee-principal-type ServicePrincipal --scope /subscriptions/$subscriptionId/resourceGroups/$resourceGroupName
+
+az role assignment create --role "Role Based Access Administrator" --subscription $subscriptionId --assignee-object-id $ServicePrincipalObjectId --assignee-principal-type ServicePrincipal --scope /subscriptions/$subscriptionId/resourceGroups/$resourceGroupName
 ```
 
 Create a file, credential.json, populated similar to the following:
