@@ -5,6 +5,7 @@ on:
       - "main"
     paths:
       - "infra/base/**"
+      - ".github/workflows/provision-base-dev.yml"
 
   workflow_dispatch:
 
