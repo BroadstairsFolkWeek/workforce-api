@@ -15,6 +15,9 @@ env:
   AZURE_CORE_OUTPUT: "none"
   resourceGroupName: "rg-bfwworkforceservices-dev"
   RESOURCE_SUFFIX: "8db7e8c"
+  APP_AAD_CLIENT_ID: ${{ secrets.APP_AAD_CLIENT_ID }}
+  APP_AAD_CLIENT_SECRET: ${{ secrets.APP_AAD_CLIENT_SECRET }}
+  APP_AAD_TENANT_ID: ${{ secrets.APP_AAD_TENANT_ID }}
 
 permissions:
   id-token: write
