@@ -1,14 +1,16 @@
+@minLength(3)
+param resourceBaseName string
+
 param location string
 param logAnalyticsWorkspaceId string
 param managedIdentityId string
 param managedIdentityPrincipalId string
 param tags object
-param containerRegistryName string
 
-var acrPullRole = resourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
+var acrPushPullRole = resourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')
 
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-11-02-preview' = {
-  name: 'cae-workforceservices'
+  name: 'cae-${resourceBaseName}'
   location: location
   identity: {
     type: 'UserAssigned'
@@ -49,7 +51,7 @@ resource acaEnvironmentDiagnosticSettings 'Microsoft.Insights/diagnosticSettings
 }
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: containerRegistryName
+  name: 'cr${resourceBaseName}'
   location: location
   tags: tags
   sku: {
@@ -61,9 +63,9 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: containerRegistry
-  name: guid(containerRegistry.id, managedIdentityPrincipalId, acrPullRole)
+  name: guid(containerRegistry.id, managedIdentityPrincipalId, acrPushPullRole)
   properties: {
-    roleDefinitionId: acrPullRole
+    roleDefinitionId: acrPushPullRole
     principalId: managedIdentityPrincipalId
     principalType: 'ServicePrincipal'
   }
@@ -72,3 +74,5 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 output defaultDomain string = containerAppsEnvironment.properties.defaultDomain
 output environmentId string = containerAppsEnvironment.id
 output containerRegistryId string = containerRegistry.id
+output containerRegistryName string = containerRegistry.name
+output containerRegistryLoginServer string = containerRegistry.properties.loginServer

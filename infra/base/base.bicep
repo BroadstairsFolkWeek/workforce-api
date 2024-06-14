@@ -1,5 +1,13 @@
-@description('Environment name (dev, test, prod)')
-param environment string
+metadata description = 'Provision an Azure Container Apps environment, along with supporting resources, that can be used later to deploy Azure Container Apps to.'
+
+@description('Element to be incorporated in resource names to ensure uniqueness in Azure.')
+@minLength(5)
+@maxLength(10)
+param resourceUniqueNameElement string
+
+@description('Name of the environment these provisioned resources relate to. Will be incoporated into resource names.')
+@allowed(['dev', 'test', 'prod'])
+param environmentName string
 
 @description('Location where resources will be provisioned')
 param location string
@@ -7,17 +15,15 @@ param location string
 @description('Tags to be applied to all resources in this deployment')
 param tags object
 
-@description('Array that represents desired traffic distribution between container apps revisions')
-param trafficDistribution array
+@description('Common part of the name of the resources to be created')
+var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
 
-@description('Name of the Azure Container Registry that will be used to pull container images from')
-param containerRegistryName string
 
 @description('Module that provisions common resources that will be re-used by other resources in the deployment, like managed identities')
 module common 'modules/common.bicep' = {
   name: 'common-resources'
   params: {
-    environment: environment
+    resourceBaseName: resourceBaseName
     location: location 
     tags: tags
   }
@@ -27,7 +33,7 @@ module common 'modules/common.bicep' = {
 module azure_monitor 'modules/azure-monitor.bicep' = {
   name: 'azure-monitor'
   params: {
-    environment: environment
+    resourceBaseName: resourceBaseName
     location: location
     managedIdentityId: common.outputs.managedIdentityId
     tags: tags
@@ -38,26 +44,11 @@ module azure_monitor 'modules/azure-monitor.bicep' = {
 module aca_common 'modules/aca-common.bicep' = {
   name: 'aca-common'
   params: {
+    resourceBaseName: resourceBaseName
     location: location
     logAnalyticsWorkspaceId: azure_monitor.outputs.logAnalyticsWorkspaceId
     managedIdentityId: common.outputs.managedIdentityId
     managedIdentityPrincipalId: common.outputs.managedIdentityPrincipalId
     tags: tags
-    containerRegistryName: containerRegistryName
   }
 }
-
-@description('Module that provisions publicly accessible applications as Azure Container Apps.')
-module public_apps 'modules/aca-public-apps.bicep' = {
-  name: 'public-apps'
-  params: {
-    environmentId: aca_common.outputs.environmentId
-    location: location
-    managedIdentityId: common.outputs.managedIdentityId
-    tags: tags
-    trafficDistribution: trafficDistribution
-  }
-}
-
-@description('URL for accessing Workforce API application')
-output workforceApiUri string = public_apps.outputs.workforceApiUri

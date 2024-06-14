@@ -1,17 +1,19 @@
-name: provision-azure-container-apps-dev
+name: provision-base-dev
 on:
   push:
     branches:
       - "main"
     paths:
-      - "infra/main.bicep"
-      - "infra/parameters/dev.bicepparam"
-      - "infra/modules/*"
+      - "infra/base/base.bicep"
+      - "infra/base/parameters/dev.bicepparam"
+      - "infra/base/modules/*"
 
   workflow_dispatch:
 
 env:
   AZURE_CORE_OUTPUT: "none"
+  resourceGroupName: "rg-bfwworkforceservices-dev"
+  RESOURCE_SUFFIX: "8db7e8c"
 
 permissions:
   id-token: write
@@ -31,10 +33,11 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Provision to dev
+      - name: Provision base resources
         uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
         with:
-          resourceGroupName: rg-bfwworkforceservices-dev
+          scope: resourcegroup
+          resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
-          template: ${{ github.workspace }}/infra/main.bicep
-          parameters: ${{ github.workspace }}/infra/parameters/dev.bicepparam
+          template: ${{ github.workspace }}/infra/base/base.bicep
+          parameters: ${{ github.workspace }}/infra/base/parameters/dev.bicepparam

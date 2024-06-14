@@ -1,9 +1,9 @@
-param environment string
+param resourceBaseName string
 param location string
 param tags object
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
-  name: 'uaid-workforceservices-common-${environment}'
+  name: 'uaid-${resourceBaseName}'
   location: location
   tags: tags
 }

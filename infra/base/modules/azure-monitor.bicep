@@ -1,10 +1,10 @@
-param environment string
+param resourceBaseName string
 param location string
 param managedIdentityId string
 param tags object
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: 'log-workforceservices-${environment}'
+  name: 'log-${resourceBaseName}'
   location: location
   identity: {
     type: 'UserAssigned'
