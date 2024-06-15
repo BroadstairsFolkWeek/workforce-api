@@ -135,11 +135,6 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
       globalValidation: {
         unauthenticatedClientAction: 'Return401'
       }
-      login: {
-        routes: {
-          logoutEndpoint: '/logout'
-        }
-      }
       identityProviders: {
         azureActiveDirectory: {
           enabled: true
@@ -147,6 +142,11 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             clientId: appAadClientId
             clientSecretSettingName: 'app-client-secret'
             openIdIssuer: '${environment().authentication.loginEndpoint}${appAadTenantId}'
+          }
+          validation: {
+            allowedAudiences: [
+              'app://${appAadClientId}'
+            ]
           }
         }
       }
