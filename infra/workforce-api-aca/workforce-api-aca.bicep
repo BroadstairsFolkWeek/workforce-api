@@ -145,7 +145,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           }
           validation: {
             allowedAudiences: [
-              'app://${appAadClientId}'
+              'api://${appAadClientId}'
             ]
           }
         }
