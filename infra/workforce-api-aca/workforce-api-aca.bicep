@@ -146,7 +146,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           registration: {
             clientId: appAadClientId
             clientSecretSettingName: 'app-client-secret'
-            openIdIssuer: '${environment().authentication.loginEndpoint}v2.0/${appAadTenantId}'
+            openIdIssuer: '${environment().authentication.loginEndpoint}${appAadTenantId}'
           }
         }
       }
