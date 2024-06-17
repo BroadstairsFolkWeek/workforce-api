@@ -13,7 +13,6 @@ env:
   AZURE_CORE_OUTPUT: "none"
   resourceGroupName: "rg-bfwworkforceservices-dev"
   RESOURCE_SUFFIX: "8db7e8c"
-  DUMMY: "dummy"
 
 permissions:
   id-token: write
