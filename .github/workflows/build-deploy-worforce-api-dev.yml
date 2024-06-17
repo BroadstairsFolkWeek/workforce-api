@@ -3,11 +3,12 @@ on:
   push:
     branches:
       - "main"
-    paths-ignore:
-      - "infra/**"
-      - "!infra/workforce-api/**"
-      - ".github/workflows/**"
-      - "!.github/workflows/build-deploy-worforce-api-dev.yml"
+    paths:
+      - "**"
+      - "!infra/**"
+      - "infra/workforce-api/**"
+      - "!.github/workflows/**"
+      - ".github/workflows/build-deploy-worforce-api-dev.yml"
 
   workflow_dispatch:
 
