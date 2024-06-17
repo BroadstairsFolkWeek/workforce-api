@@ -6,7 +6,7 @@ on:
     paths:
       - "**"
       - "!infra/**"
-      - "infra/workforce-api/**"
+      - "infra/workforce-api-aca/**"
       - "!.github/workflows/**"
       - ".github/workflows/build-deploy-worforce-api-dev.yml"
 
