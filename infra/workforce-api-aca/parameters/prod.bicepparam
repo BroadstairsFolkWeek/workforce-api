@@ -8,7 +8,7 @@ param appAadClientId = readEnvironmentVariable('APP_AAD_CLIENT_ID')
 param appAadClientSecret = readEnvironmentVariable('APP_AAD_CLIENT_SECRET')
 param appAadTenantId = readEnvironmentVariable('APP_AAD_TENANT_ID')
 
-param environmentName = 'dev'
+param environmentName = 'prod'
 
 param location = 'uksouth'
 

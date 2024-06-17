@@ -52,7 +52,7 @@ az role assignment create --role contributor --subscription $subscriptionId --as
 az role assignment create --role "Role Based Access Administrator" --subscription $subscriptionId --assignee-object-id $ServicePrincipalObjectId --assignee-principal-type ServicePrincipal --scope /subscriptions/$subscriptionId/resourceGroups/$resourceGroupName
 ```
 
-Create a file, credential.json, populated similar to the following:
+Create a file, credential-dev.json, populated similar to the following:
 
 ```
 {
@@ -66,17 +66,33 @@ Create a file, credential.json, populated similar to the following:
 }
 ```
 
-Adjust subject according to the 'sub' claim that will be in the token
+Create a file, credential-prod.json, populated similar to the following:
+
+```
+{
+    "name": "WFServices-Provisioning-GitHubCredential-prod",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:BroadstairsFolkWeek/workforce-api:ref:refs/tags-prod",
+    "description": "GitHub Actions credential for deployment of WF Services resources from the prod tag",
+    "audiences": [
+        "api://AzureADTokenExchange"
+    ]
+}
+```
+
+Modify subject according to the 'sub' claim that will be in the token
 issued by GitHub's OIDC provider. This ensures that only that request
-from the correct repository and branch are trusted.
+from the correct repository and branch/tag are trusted.
 
 See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#example-subject-claims for information on how the sub claim is assembled.
 
-To apply the federated credential, described in the credential.json file,
-to the application, run the following:
+To apply the federated credentials, described in the credential-dev.json and
+credential-prod.json files, to the application, run the following:
 
 ```
-az ad app federated-credential create --id $ApplicationObjectId --parameters credential.json
+az ad app federated-credential create --id $ApplicationObjectId --parameters credential-dev.json
+
+az ad app federated-credential create --id $ApplicationObjectId --parameters credential-prod.json
 ```
 
 Once the above steps have been run, apply the following secrets to the
