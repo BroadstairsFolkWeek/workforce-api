@@ -2,7 +2,9 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { Effect, Console } from "effect";
 
-const getName = () => Effect.succeed("World");
+// dummy comment
+
+const getName = () => Effect.succeed("World2");
 
 const greet = (name: string) => Effect.succeed(`Hello, ${name}!`);
 
