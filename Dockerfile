@@ -8,6 +8,7 @@ COPY . .
 FROM base as builder
 WORKDIR /usr/src/app
 RUN npm run build
+RUN npm run test
 
 
 FROM node:lts-alpine
