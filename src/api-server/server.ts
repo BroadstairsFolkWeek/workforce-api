@@ -1,19 +1,12 @@
 import { serve } from "@hono/node-server";
 import { ServerType } from "@hono/node-server/dist/types";
-import { Hono } from "hono";
+import api from "./api";
 
-const app = new Hono();
 let server: ServerType | undefined;
-
-app.get("/", (c) => {
-  const headers = c.req.raw.headers;
-  const headersObj = Object.fromEntries(headers.entries());
-  return c.json(headersObj);
-});
 
 export const serveRestApi = (port: number) => {
   server = serve({
-    fetch: app.fetch,
+    fetch: api.fetch,
     port,
   });
 

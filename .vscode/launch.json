@@ -6,6 +6,18 @@
       "request": "launch",
       "preLaunchTask": "docker-run: debug",
       "platform": "node"
+    },
+    {
+      "command": "npm run dev",
+      "name": "Run dev",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
+      "type": "node-terminal",
+      "name": "Integration Tests",
+      "request": "launch",
+      "command": "npm run test:integration"
     }
   ]
 }

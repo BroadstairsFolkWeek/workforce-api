@@ -5,6 +5,11 @@
     {
       "name": "unit-tests",
       "jestCommandLine": "npm run test --"
+    },
+    {
+      "name": "integration-tests",
+      "runMode": "on-demand",
+      "jestCommandLine": "npm run test:integration --"
     }
   ],
   "eslint.lintTask.enable": true,
