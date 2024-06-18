@@ -1,32 +1,10 @@
-import { serve } from "@hono/node-server";
-import { Hono } from "hono";
-import { Effect, Console } from "effect";
+import * as restApi from "./rest-api";
 
-// dummy comment
+restApi.serveRestApi(3000);
 
-const getName = () => Effect.succeed("World2");
-
-const greet = (name: string) => Effect.succeed(`Hello, ${name}!`);
-
-const program = getName().pipe(
-  Effect.andThen(greet),
-  Effect.andThen((greeting) => Console.log(greeting))
-);
-
-Effect.runSync(program);
-
-const app = new Hono();
-
-app.get("/", (c) => {
-  const headers = c.req.raw.headers;
-  const headersObj = Object.fromEntries(headers.entries());
-  return c.json(headersObj);
+process.on("SIGINT", () => {
+  restApi.stopRestApi();
 });
-
-const port = 3000;
-serve({
-  fetch: app.fetch,
-  port,
+process.on("SIGTERM", () => {
+  restApi.stopRestApi();
 });
-
-console.log(`Server is running on port ${port}`);
