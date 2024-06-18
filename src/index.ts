@@ -1,4 +1,4 @@
-import * as restApi from "./rest-api";
+import * as restApi from "./api-server";
 
 restApi.serveRestApi(3000);
 
