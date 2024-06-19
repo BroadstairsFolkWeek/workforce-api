@@ -41,15 +41,6 @@ param workforceProfilesListGuid string
 @description('GUID of the Workforce User Logins list in the Workforce SharePoint site')
 param workforceLoginsListGuid string
 
-
-@description('Array that represents desired traffic distribution between container apps revisions')
-param trafficDistribution array = [
-  {
-    latestRevision: true
-    weight: 100
-  }
-]
-
 @description('Location where resources will be provisioned')
 param location string = 'uksouth'
 
@@ -101,10 +92,9 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
         targetPort: 3000
         transport: 'http'
         clientCertificateMode: 'ignore'
-        traffic: trafficDistribution
         allowInsecure: false
       }
-      activeRevisionsMode: 'Multiple'
+      activeRevisionsMode: 'Single'
       maxInactiveRevisions: 2
       secrets: [
         {
