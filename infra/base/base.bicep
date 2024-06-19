@@ -10,10 +10,13 @@ param resourceUniqueNameElement string
 param environmentName string
 
 @description('Location where resources will be provisioned')
-param location string
+param location string = 'uksouth'
 
 @description('Tags to be applied to all resources in this deployment')
-param tags object
+param tags object = {
+  application: 'workforce-services'
+  environment: environmentName
+}
 
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'

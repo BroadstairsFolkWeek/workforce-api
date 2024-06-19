@@ -34,7 +34,9 @@ jobs:
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/base/base.bicep
-          parameters: ${{ github.workspace }}/infra/base/parameters/prod.bicepparam
+          parameters: >-
+            resourceUniqueNameElement=14810951 
+            environmentName=prod
 
       - name: Find Azure Container Registry in Resource Group
         id: queryAcr

@@ -12,7 +12,6 @@ on:
 env:
   AZURE_CORE_OUTPUT: "none"
   resourceGroupName: "rg-bfwworkforceservices-dev"
-  RESOURCE_SUFFIX: "8db7e8c"
 
 permissions:
   id-token: write
@@ -39,4 +38,6 @@ jobs:
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/base/base.bicep
-          parameters: ${{ github.workspace }}/infra/base/parameters/dev.bicepparam
+          parameters: >-
+            resourceUniqueNameElement=8db7e8c 
+            environmentName=dev
