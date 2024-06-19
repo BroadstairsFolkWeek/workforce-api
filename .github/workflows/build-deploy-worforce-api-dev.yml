@@ -47,6 +47,7 @@ jobs:
         run: |
           docker build -t $acrLoginServer/workforce-api:latest .
           docker push $acrLoginServer/workforce-api:latest
+          echo "containerImage=$acrLoginServer/workforce-api:latest" >> "$GITHUB_ENV"
 
       - name: Provision workforce-api azure container app
         uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
@@ -56,7 +57,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
           parameters: >-
-            containerImage=$acrLoginServer/workforce-api:latest
+            containerImage=${{ env.containerImage }}
             resourceUniqueNameElement=8db7e8c
             environmentName=dev
             appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_DEV }}
