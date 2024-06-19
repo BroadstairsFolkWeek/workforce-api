@@ -50,6 +50,11 @@ param tags object = {
   environment: environmentName
 }
 
+@description('Minimum number of replicas for the workforce-api Azure Container App')
+param minReplicas int = 1
+@description('Maximum number of replicas for the workforce-api Azure Container App')
+param maxReplicas int = 1
+
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
 
@@ -131,8 +136,8 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
         }
       ]
       scale: {
-        minReplicas: 0
-        maxReplicas: 1
+        minReplicas: minReplicas
+        maxReplicas: maxReplicas
       }
     }
   }

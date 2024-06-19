@@ -60,6 +60,7 @@ jobs:
             containerImage=${{ env.containerImage }}
             resourceUniqueNameElement=8db7e8c
             environmentName=dev
+            minReplicas=0
             appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_DEV }}
             appAadClientSecret=${{ secrets.APP_AAD_CLIENT_SECRET_DEV }}
             appAadTenantId=${{ secrets.APP_AAD_TENANT_ID_DEV }}
