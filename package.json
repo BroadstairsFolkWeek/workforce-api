@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "env-cmd -f ./.env tsx watch src/index.ts",
+    "start": "npm run build && env-cmd -f ./.env node dist/src/index.js",
     "build": "tsc",
     "test": "jest --roots ./tests",
     "test:integration": "env-cmd -f ./tests-integration/.env jest --roots ./tests-integration"
