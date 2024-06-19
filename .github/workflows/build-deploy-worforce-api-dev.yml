@@ -65,7 +65,7 @@ jobs:
             graphTenantId=${{ secrets.GRAPH_TENANT_ID_DEV }}
             graphClientId=${{ secrets.GRAPH_CLIENT_ID_DEV }}
             graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_DEV }}
-            workforceSiteHostnames=${{ secrets.WORKFORCE_SITE_HOSTNAME_DEV }}
+            workforceSiteHostname=${{ secrets.WORKFORCE_SITE_HOSTNAME_DEV }}
             workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_DEV }}
             workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_DEV }}
             workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_DEV }}
