@@ -24,14 +24,40 @@ param appAadTenantId string
 @allowed(['dev', 'test', 'prod'])
 param environmentName string
 
+@description('Tenant ID of the registered application that will be used to access the Microsoft Graph API')
+param graphTenantId string
+@description('Client ID of the registered application that will be used to access the Microsoft Graph API')
+param graphClientId string
+@description('Client Secret of the registered application that will be used to access the Microsoft Graph API')
+@secure()
+param graphClientSecret string
+
+@description('Hostname of the Workforce SharePoint site that contains lists and libraries used by the workforce-api')
+param workforceSiteHostname string
+@description('Path to the Workforce SharePoint site that contains lists and libraries used by the workforce-api')
+param workforceSitePath string
+@description('GUID of the Workforce Profiles list in the Workforce SharePoint site')
+param workforceProfilesListGuid string
+@description('GUID of the Workforce User Logins list in the Workforce SharePoint site')
+param workforceLoginsListGuid string
+
+
 @description('Array that represents desired traffic distribution between container apps revisions')
-param trafficDistribution array
+param trafficDistribution array = [
+  {
+    latestRevision: true
+    weight: 100
+  }
+]
 
 @description('Location where resources will be provisioned')
-param location string
+param location string = 'uksouth'
 
 @description('Tags to be applied to all resources in this deployment')
-param tags object
+param tags object = {
+  application: 'workforce-services'
+  environment: environmentName
+}
 
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
@@ -85,6 +111,13 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           name: 'app-client-secret'
           value: appAadClientSecret
         }
+        {name: 'GRAPH_TENANT_ID', value: graphTenantId}
+        {name: 'GRAPH_CLIENT_ID', value: graphClientId}
+        {name: 'GRAPH_CLIENT_SECRET', value: graphClientSecret}
+        {name: 'WORKFORCE_SITE_HOSTNAME', value: workforceSiteHostname}
+        {name: 'WORKFORCE_SITE_PATH', value: workforceSitePath}
+        {name: 'WORKFORCE_PROFILES_LIST_GUID', value: workforceProfilesListGuid}
+        {name: 'WORKFORCE_LOGINS_LIST_GUID', value: workforceLoginsListGuid}
       ]
     }
     template: {
@@ -97,6 +130,13 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             memory: '0.5Gi'
           }
           env: [
+            {name: 'AZURE_TENANT_ID', secretRef: 'GRAPH_TENANT_ID'}
+            {name: 'AZURE_CLIENT_ID', secretRef: 'GRAPH_CLIENT_ID'}
+            {name: 'AZURE_CLIENT_SECRET', secretRef: 'GRAPH_CLIENT_SECRET'}
+            {name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'WORKFORCE_SITE_HOSTNAME'}
+            {name: 'WORKFORCE_SITE_PATH', secretRef: 'WORKFORCE_SITE_PATH'}
+            {name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'WORKFORCE_PROFILES_LIST_GUID'}
+            {name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'WORKFORCE_LOGINS_LIST_GUID'}
           ]
           probes: [
             {

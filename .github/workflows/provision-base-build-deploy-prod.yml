@@ -8,10 +8,6 @@ on:
 env:
   AZURE_CORE_OUTPUT: "none"
   resourceGroupName: "rg-bfwworkforceservices-prod"
-  RESOURCE_SUFFIX: "14810951"
-  APP_AAD_CLIENT_ID: ${{ secrets.APP_AAD_CLIENT_ID_PROD }}
-  APP_AAD_CLIENT_SECRET: ${{ secrets.APP_AAD_CLIENT_SECRET_PROD }}
-  APP_AAD_TENANT_ID: ${{ secrets.APP_AAD_TENANT_ID_PROD }}
 
 permissions:
   id-token: write
@@ -62,4 +58,17 @@ jobs:
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
-          parameters: ${{ github.workspace }}/infra/workforce-api-aca/parameters/prod.bicepparam
+          parameters: >-
+            containerImage=$acrLoginServer/workforce-api:latest
+            resourceUniqueNameElement=14810951 
+            environmentName=prod
+            appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_PROD }} 
+            appAadClientSecret=${{ secrets.APP_AAD_CLIENT_SECRET_PROD }}
+            appAadTenantId=${{ secrets.APP_AAD_TENANT_ID_PROD }}
+            graphTenantId=${{ secrets.GRAPH_TENANT_ID_PROD }}
+            graphClientId=${{ secrets.GRAPH_CLIENT_ID_PROD }}
+            graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_PROD }}
+            workforceSiteHostnames=${{ secrets.WORKFORCE_SITE_HOSTNAME_PROD }}
+            workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_PROD }}
+            workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_PROD }}
+            workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_PROD }}

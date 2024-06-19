@@ -15,10 +15,6 @@ on:
 env:
   AZURE_CORE_OUTPUT: "none"
   resourceGroupName: "rg-bfwworkforceservices-dev"
-  RESOURCE_SUFFIX: "8db7e8c"
-  APP_AAD_CLIENT_ID: ${{ secrets.APP_AAD_CLIENT_ID_DEV }}
-  APP_AAD_CLIENT_SECRET: ${{ secrets.APP_AAD_CLIENT_SECRET_DEV }}
-  APP_AAD_TENANT_ID: ${{ secrets.APP_AAD_TENANT_ID_DEV }}
 
 permissions:
   id-token: write
@@ -51,7 +47,6 @@ jobs:
         run: |
           docker build -t $acrLoginServer/workforce-api:latest .
           docker push $acrLoginServer/workforce-api:latest
-          echo "CONTAINER_IMAGE=$acrLoginServer/workforce-api:latest" >> "$GITHUB_ENV"
 
       - name: Provision workforce-api azure container app
         uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
@@ -60,4 +55,17 @@ jobs:
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
-          parameters: ${{ github.workspace }}/infra/workforce-api-aca/parameters/dev.bicepparam
+          parameters: >-
+            containerImage=$acrLoginServer/workforce-api:latest
+            resourceUniqueNameElement=8db7e8c
+            environmentName=dev
+            appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_DEV }}
+            appAadClientSecret=${{ secrets.APP_AAD_CLIENT_SECRET_DEV }}
+            appAadTenantId=${{ secrets.APP_AAD_TENANT_ID_DEV }}
+            graphTenantId=${{ secrets.GRAPH_TENANT_ID_DEV }}
+            graphClientId=${{ secrets.GRAPH_CLIENT_ID_DEV }}
+            graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_DEV }}
+            workforceSiteHostnames=${{ secrets.WORKFORCE_SITE_HOSTNAME_DEV }}
+            workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_DEV }}
+            workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_DEV }}
+            workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_DEV }}
