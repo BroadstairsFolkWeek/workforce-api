@@ -111,13 +111,13 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           name: 'app-client-secret'
           value: appAadClientSecret
         }
-        {name: 'graphTenantId', value: graphTenantId}
-        {name: 'graphClientId', value: graphClientId}
-        {name: 'graphClientSecret', value: graphClientSecret}
-        {name: 'workforceSiteHostname', value: workforceSiteHostname}
-        {name: 'workforceSitePath', value: workforceSitePath}
-        {name: 'workforceProfilesListGuid', value: workforceProfilesListGuid}
-        {name: 'workforceLoginsListGuid', value: workforceLoginsListGuid}
+        {name: 'graph-tenant-id', value: graphTenantId}
+        {name: 'graph-client-id', value: graphClientId}
+        {name: 'graph-client-secret', value: graphClientSecret}
+        {name: 'workforce-site-hostname', value: workforceSiteHostname}
+        {name: 'workforce-site-path', value: workforceSitePath}
+        {name: 'workforce-profiles-list-guid', value: workforceProfilesListGuid}
+        {name: 'workforce-logins-list-guid', value: workforceLoginsListGuid}
       ]
     }
     template: {
@@ -130,13 +130,13 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             memory: '0.5Gi'
           }
           env: [
-            {name: 'AZURE_TENANT_ID', secretRef: 'graphTenantId'}
-            {name: 'AZURE_CLIENT_ID', secretRef: 'graphClientId'}
-            {name: 'AZURE_CLIENT_SECRET', secretRef: 'graphClientSecret'}
-            {name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforceSiteHostname'}
-            {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforceSitePath'}
-            {name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'workforceProfilesListGuid'}
-            {name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'workforceLoginsListGuid'}
+            {name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id'}
+            {name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id'}
+            {name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret'}
+            {name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforce-site-hostname'}
+            {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path'}
+            {name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'workforce-profiles-list-guid'}
+            {name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'workforce-logins-list-guid'}
           ]
           probes: [
             {
