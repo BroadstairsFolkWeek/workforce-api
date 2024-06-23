@@ -48,6 +48,7 @@ jobs:
           docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name $acrLoginServer --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
       - name: Build and push container image
+        working-directory: ./wfapi
         run: |
           docker build -t $acrLoginServer/workforce-api:latest .
           docker push $acrLoginServer/workforce-api:latest

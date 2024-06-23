@@ -4,10 +4,12 @@
   "jest.virtualFolders": [
     {
       "name": "unit-tests",
+      "rootPath": "wfapi",
       "jestCommandLine": "npm run test --"
     },
     {
       "name": "integration-tests",
+      "rootPath": "wfapi",
       "runMode": "on-demand",
       "jestCommandLine": "npm run test:integration --"
     }
