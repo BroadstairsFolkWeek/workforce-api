@@ -8,7 +8,7 @@ on:
       - "!infra/**"
       - "infra/workforce-api-aca/**"
       - "!.github/workflows/**"
-      - ".github/workflows/build-deploy-worforce-photos-dev.yml"
+      - ".github/workflows/build-deploy-workforce-photos-dev.yml"
 
   workflow_dispatch:
 
