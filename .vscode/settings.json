@@ -3,13 +3,24 @@
   "editor.formatOnSave": true,
   "jest.virtualFolders": [
     {
-      "name": "unit-tests",
+      "name": "wfapi-unit-tests",
       "rootPath": "wfapi",
       "jestCommandLine": "npm run test --"
     },
     {
-      "name": "integration-tests",
+      "name": "wfapi-integration-tests",
       "rootPath": "wfapi",
+      "runMode": "on-demand",
+      "jestCommandLine": "npm run test:integration --"
+    },
+    {
+      "name": "wfphotos-unit-tests",
+      "rootPath": "wfphotos",
+      "jestCommandLine": "npm run test --"
+    },
+    {
+      "name": "wfphotos-integration-tests",
+      "rootPath": "wfphotos",
       "runMode": "on-demand",
       "jestCommandLine": "npm run test:integration --"
     }

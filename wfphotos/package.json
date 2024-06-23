@@ -1,0 +1,41 @@
+{
+  "name": "workforce-photos",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "env-cmd -f ./.env tsx watch src/index.ts",
+    "start": "npm run build && env-cmd -f ./.env node dist/src/index.js",
+    "build": "tsc",
+    "test": "jest --roots ./tests",
+    "test:integration": "env-cmd -f ./tests-integration/.env jest --roots ./tests-integration"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@microsoft/microsoft-graph-types": "^2.40.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.2",
+    "env-cmd": "^10.1.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.4",
+    "tsx": "^4.15.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.12.0"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.2.1",
+    "@effect/language-service": "^0.1.0",
+    "@effect/platform": "^0.58.4",
+    "@effect/platform-node": "^0.53.3",
+    "@effect/schema": "^0.68.6",
+    "@hono/node-server": "^1.11.2",
+    "@hono/zod-validator": "^0.2.2",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "effect": "^3.4.0",
+    "hono": "^4.4.5",
+    "isomorphic-fetch": "^3.0.0"
+  }
+}

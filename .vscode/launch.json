@@ -13,6 +13,20 @@
       "request": "launch",
       "command": "npm run test:integration",
       "cwd": "${workspaceFolder}/wfapi"
+    },
+    {
+      "command": "npm run dev",
+      "name": "Run wfphotos dev",
+      "request": "launch",
+      "type": "node-terminal",
+      "cwd": "${workspaceFolder}/wfphotos"
+    },
+    {
+      "type": "node-terminal",
+      "name": "WfPhotos Integration Tests",
+      "request": "launch",
+      "command": "npm run test:integration",
+      "cwd": "${workspaceFolder}/wfphotos"
     }
   ]
 }
