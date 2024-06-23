@@ -47,7 +47,7 @@ jobs:
         run: |
           docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name $acrLoginServer --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
-      - name: Build and push container image
+      - name: Build and push workforce-api container image
         working-directory: ./wfapi
         run: |
           docker build -t $acrLoginServer/workforce-api:latest .
@@ -75,3 +75,31 @@ jobs:
             workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_PROD }}
             workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_PROD }}
             workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_PROD }}
+
+      - name: Build and push workforce-photos container image
+        working-directory: ./wfphotos
+        run: |
+          docker build -t $acrLoginServer/workforce-photos:latest .
+          docker push $acrLoginServer/workforce-photos:latest
+          echo "containerImage=$acrLoginServer/workforce-photos:latest" >> "$GITHUB_ENV"
+
+      - name: Provision workforce-photos azure container app
+        uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
+        with:
+          scope: resourcegroup
+          resourceGroupName: ${{ env.resourceGroupName }}
+          deploymentName: ${{ github.run_number }}
+          template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
+          parameters: >-
+            containerImage=${{ env.containerImage }}
+            resourceUniqueNameElement=14810951 
+            environmentName=prod
+            appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_PROD }} 
+            appAadClientSecret=${{ secrets.APP_AAD_CLIENT_SECRET_PROD }}
+            appAadTenantId=${{ secrets.APP_AAD_TENANT_ID_PROD }}
+            graphTenantId=${{ secrets.GRAPH_TENANT_ID_PROD }}
+            graphClientId=${{ secrets.GRAPH_CLIENT_ID_PROD }}
+            graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_PROD }}
+            workforceSiteHostname=${{ secrets.WORKFORCE_SITE_HOSTNAME_PROD }}
+            workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_PROD }}
+            workforcePhotosListGuid=${{ vars.WORKFORCE_PHOTOS_LIST_GUID_PROD }}

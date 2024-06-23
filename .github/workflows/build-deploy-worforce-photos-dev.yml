@@ -56,7 +56,7 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.resourceGroupName }}
           deploymentName: ${{ github.run_number }}
-          template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-photos-aca.bicep
+          template: ${{ github.workspace }}/infra/workforce-photos-aca/workforce-photos-aca.bicep
           parameters: >-
             containerImage=${{ env.containerImage }}
             resourceUniqueNameElement=8db7e8c
@@ -70,5 +70,4 @@ jobs:
             graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_DEV }}
             workforceSiteHostname=${{ secrets.WORKFORCE_SITE_HOSTNAME_DEV }}
             workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_DEV }}
-            workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_DEV }}
-            workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_DEV }}
+            workforcePhotosListGuid=${{ vars.WORKFORCE_PHOTOS_LIST_GUID_DEV }}
