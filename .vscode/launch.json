@@ -1,23 +1,18 @@
 {
   "configurations": [
     {
-      "name": "Docker Node.js Launch",
-      "type": "docker",
-      "request": "launch",
-      "preLaunchTask": "docker-run: debug",
-      "platform": "node"
-    },
-    {
       "command": "npm run dev",
-      "name": "Run dev",
+      "name": "Run wfapi dev",
       "request": "launch",
-      "type": "node-terminal"
+      "type": "node-terminal",
+      "cwd": "${workspaceFolder}/wfapi"
     },
     {
       "type": "node-terminal",
-      "name": "Integration Tests",
+      "name": "WfApi Integration Tests",
       "request": "launch",
-      "command": "npm run test:integration"
+      "command": "npm run test:integration",
+      "cwd": "${workspaceFolder}/wfapi"
     }
   ]
 }
