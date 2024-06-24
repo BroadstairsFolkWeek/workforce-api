@@ -6,7 +6,7 @@ import { Effect } from "effect";
 import { getPhotoByPhotoId } from "../services/photo";
 import { layersLive } from "../contexts/layers-live";
 
-const photos = new Hono().basePath("/photos");
+const photos = new Hono();
 
 photos.use(poweredBy());
 photos.use(logger());

@@ -1,12 +1,17 @@
 import { serve } from "@hono/node-server";
 import { ServerType } from "@hono/node-server/dist/types";
+import { Hono } from "hono";
 import photos from "./photos";
 
 let server: ServerType | undefined;
 
+const hono = new Hono();
+hono.get("/", (c) => c.body(null, 204));
+hono.route("/photos", photos);
+
 export const startPhotoServer = (port: number) => {
   server = serve({
-    fetch: photos.fetch,
+    fetch: hono.fetch,
     port,
   });
 

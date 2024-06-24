@@ -19,5 +19,5 @@ RUN npm install --only=production
 COPY --from=builder /usr/src/app/dist/src ./
 RUN chown -R node /usr/src/app
 USER node
-EXPOSE 3000
+EXPOSE 3001
 ENTRYPOINT ["node","./index.js"]
