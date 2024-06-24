@@ -1,4 +1,4 @@
-name: build-deploy-worforce-photos-dev
+name: build-deploy-workforce-photos-dev
 on:
   push:
     branches:

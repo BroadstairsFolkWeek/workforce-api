@@ -1,4 +1,4 @@
-name: build-deploy-worforce-api-dev
+name: build-deploy-workforce-api-dev
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
       - "!infra/**"
       - "infra/workforce-api-aca/**"
       - "!.github/workflows/**"
-      - ".github/workflows/build-deploy-worforce-api-dev.yml"
+      - ".github/workflows/build-deploy-workforce-api-dev.yml"
 
   workflow_dispatch:
 
