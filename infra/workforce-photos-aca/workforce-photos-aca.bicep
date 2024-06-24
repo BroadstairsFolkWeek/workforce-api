@@ -113,28 +113,6 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
             {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path'}
             {name: 'WORKFORCE_PHOTOS_LIST_GUID', secretRef: 'workforce-photos-list-guid'}
           ]
-          probes: [
-            {
-              type: 'Liveness'
-              httpGet: {
-                path: '/'
-                port: 3001
-              }
-              initialDelaySeconds: 3
-              periodSeconds: 3
-              failureThreshold: 5
-            }
-            {
-              type: 'Readiness'
-              httpGet: {
-                path: '/'
-                port: 3001
-              }
-              initialDelaySeconds: 3
-              periodSeconds: 3
-              failureThreshold: 3
-            }
-          ]
         }
       ]
       
