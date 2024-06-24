@@ -8,18 +8,6 @@ param containerImage string
 @maxLength(10)
 param resourceUniqueNameElement string
 
-@description('The Client ID used for authenticating the workforce-photos application to the AAD authentication provider')
-@secure()
-param appAadClientId string
-
-@description('The Client Secret used for authenticating the workforce-photos application to the AAD authentication provider')
-@secure()
-param appAadClientSecret string
-
-@description('The Tenant ID of the AAD authentication provider')
-@secure()
-param appAadTenantId string
-
 @description('Name of the environment these provisioned resources relate to. Will be incoporated into resource names.')
 @allowed(['dev', 'test', 'prod'])
 param environmentName string
@@ -100,10 +88,6 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
       activeRevisionsMode: 'Single'
       maxInactiveRevisions: 2
       secrets: [
-        {
-          name: 'app-client-secret'
-          value: appAadClientSecret
-        }
         {name: 'graph-tenant-id', value: graphTenantId}
         {name: 'graph-client-id', value: graphClientId}
         {name: 'graph-client-secret', value: graphClientSecret}
@@ -134,33 +118,6 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
       scale: {
         minReplicas: minReplicas
         maxReplicas: maxReplicas
-      }
-    }
-  }
-
-  resource authConfigs 'authConfigs' = {
-    name: 'current'
-    properties: {
-      globalValidation: {
-        unauthenticatedClientAction: 'Return401'
-      }
-      identityProviders: {
-        azureActiveDirectory: {
-          enabled: true
-          registration: {
-            clientId: appAadClientId
-            clientSecretSettingName: 'app-client-secret'
-            openIdIssuer: '${environment().authentication.loginEndpoint}${appAadTenantId}'
-          }
-          validation: {
-            allowedAudiences: [
-              'api://${appAadClientId}'
-            ]
-          }
-        }
-      }
-      platform:{
-        enabled: true
       }
     }
   }

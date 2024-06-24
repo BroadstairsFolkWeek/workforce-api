@@ -94,9 +94,6 @@ jobs:
             containerImage=${{ env.containerImage }}
             resourceUniqueNameElement=14810951 
             environmentName=prod
-            appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_PROD }} 
-            appAadClientSecret=${{ secrets.APP_AAD_CLIENT_SECRET_PROD }}
-            appAadTenantId=${{ secrets.APP_AAD_TENANT_ID_PROD }}
             graphTenantId=${{ secrets.GRAPH_TENANT_ID_PROD }}
             graphClientId=${{ secrets.GRAPH_CLIENT_ID_PROD }}
             graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_PROD }}
