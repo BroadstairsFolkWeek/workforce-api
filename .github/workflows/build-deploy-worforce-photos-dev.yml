@@ -1,4 +1,4 @@
-name: build-deploy-worforce-api-dev
+name: build-deploy-worforce-photos-dev
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
     paths:
       - "wfphotos/**"
       - "!infra/**"
-      - "infra/workforce-api-aca/**"
+      - "infra/workforce-photos-aca/**"
       - "!.github/workflows/**"
       - ".github/workflows/build-deploy-workforce-photos-dev.yml"
 
@@ -70,4 +70,4 @@ jobs:
             graphClientSecret=${{ secrets.GRAPH_CLIENT_SECRET_DEV }}
             workforceSiteHostname=${{ secrets.WORKFORCE_SITE_HOSTNAME_DEV }}
             workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_DEV }}
-            workforcePhotosListGuid=${{ vars.WORKFORCE_PHOTOS_LIST_GUID_DEV }}
+            workforcePhotosListGuid=${{ secrets.WORKFORCE_PHOTOS_LIST_GUID_DEV }}
