@@ -11,6 +11,8 @@ const ApiProfile = S.Struct({
   telephone: S.optional(S.String),
   version: S.Number,
   photoUrl: S.optional(S.String),
+  photoId: S.optional(S.String),
+  dbId: S.Number,
 });
 
 export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}
