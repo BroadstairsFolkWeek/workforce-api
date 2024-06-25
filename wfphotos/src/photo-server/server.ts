@@ -10,7 +10,11 @@ let server: ServerType | undefined;
 const hono = new Hono();
 
 hono.use(logger());
-hono.use(secureHeaders());
+hono.use(
+  secureHeaders({
+    crossOriginResourcePolicy: "cross-origin",
+  })
+);
 
 hono.get("/", (c) => c.body(null, 204));
 hono.route("/photos", photos);
