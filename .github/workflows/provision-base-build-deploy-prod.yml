@@ -47,12 +47,15 @@ jobs:
         run: |
           docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name $acrLoginServer --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
+      - name: Determine the wf-api container image tag
+        id: tag
+        run: echo "apiContainerImage=$acrLoginServer/workforce-api:${{ github.run_number }}" >> "$GITHUB_ENV"
+
       - name: Build and push workforce-api container image
         working-directory: ./wfapi
         run: |
-          docker build -t $acrLoginServer/workforce-api:latest .
-          docker push $acrLoginServer/workforce-api:latest
-          echo "containerImage=$acrLoginServer/workforce-api:latest" >> "$GITHUB_ENV"
+          docker build -t ${{ env.apiContainerImage }} .
+          docker push ${{ env.apiContainerImage }}
 
       - name: Provision workforce-api azure container app
         uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
@@ -62,7 +65,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/workforce-api-aca/workforce-api-aca.bicep
           parameters: >-
-            containerImage=${{ env.containerImage }}
+            containerImage=${{ env.apiContainerImage }}
             resourceUniqueNameElement=14810951 
             environmentName=prod
             appAadClientId=${{ secrets.APP_AAD_CLIENT_ID_PROD }} 
@@ -77,12 +80,15 @@ jobs:
             workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_PROD }}
             wfPhotosServiceBaseUrl=${{ vars.WORKFORCE_PHOTOS_SERVICE_BASE_URL_PROD }}
 
+      - name: Determine the wf-photos container image tag
+        id: tag
+        run: echo "photosContainerImage=$acrLoginServer/workforce-api:${{ github.run_number }}" >> "$GITHUB_ENV"
+
       - name: Build and push workforce-photos container image
         working-directory: ./wfphotos
         run: |
-          docker build -t $acrLoginServer/workforce-photos:latest .
-          docker push $acrLoginServer/workforce-photos:latest
-          echo "containerImage=$acrLoginServer/workforce-photos:latest" >> "$GITHUB_ENV"
+          docker build -t ${{ env.photosContainerImage }} .
+          docker push ${{ env.photosContainerImage }}
 
       - name: Provision workforce-photos azure container app
         uses: azure/arm-deploy@a1361c2c2cd398621955b16ca32e01c65ea340f5
@@ -92,7 +98,7 @@ jobs:
           deploymentName: ${{ github.run_number }}
           template: ${{ github.workspace }}/infra/workforce-photos-aca/workforce-photos-aca.bicep
           parameters: >-
-            containerImage=${{ env.containerImage }}
+            containerImage=${{ env.photosContainerImage }}
             resourceUniqueNameElement=14810951 
             environmentName=prod
             graphTenantId=${{ secrets.GRAPH_TENANT_ID_PROD }}
