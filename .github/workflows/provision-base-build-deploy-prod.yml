@@ -48,7 +48,7 @@ jobs:
           docker login $acrLoginServer -u 00000000-0000-0000-0000-000000000000 -p $(az acr login --name $acrLoginServer --expose-token --only-show-errors --query 'accessToken' --output tsv)
 
       - name: Determine the wf-api container image tag
-        id: tag
+        id: tag-wf-api
         run: echo "apiContainerImage=$acrLoginServer/workforce-api:${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: Build and push workforce-api container image
@@ -81,7 +81,7 @@ jobs:
             wfPhotosServiceBaseUrl=${{ vars.WORKFORCE_PHOTOS_SERVICE_BASE_URL_PROD }}
 
       - name: Determine the wf-photos container image tag
-        id: tag
+        id: tag-wf-photos
         run: echo "photosContainerImage=$acrLoginServer/workforce-api:${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: Build and push workforce-photos container image
