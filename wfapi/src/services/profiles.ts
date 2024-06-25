@@ -10,12 +10,21 @@ interface Profile extends ModelPersistedProfile {
   photoUrl?: string;
 }
 
+const photoIdFromEncodedPhotoId = (encodedPhotoId: string) => {
+  const splitIds = encodedPhotoId.split(":");
+  if (splitIds.length > 1) {
+    return splitIds[1];
+  } else {
+    return splitIds[0];
+  }
+};
+
 const addPhotoUrlToProfile = (
   profile: ModelPersistedProfile
 ): Effect.Effect<Profile, never, PhotosRepository> => {
   if (profile.photoIds && profile.photoIds.length > 0) {
     const photoId = profile.photoIds[0];
-    return getPhotoUrlForPhotoId(photoId).pipe(
+    return getPhotoUrlForPhotoId(photoIdFromEncodedPhotoId(photoId)).pipe(
       Effect.andThen((photoUrl) => {
         return {
           ...profile,
