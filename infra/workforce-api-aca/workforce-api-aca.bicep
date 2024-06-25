@@ -41,6 +41,9 @@ param workforceProfilesListGuid string
 @description('GUID of the Workforce User Logins list in the Workforce SharePoint site')
 param workforceLoginsListGuid string
 
+@description('Base URL for the Workforce Photos Service')
+param wfPhotosServiceBaseUrl string
+
 @description('Location where resources will be provisioned')
 param location string = 'uksouth'
 
@@ -113,6 +116,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
         {name: 'workforce-site-path', value: workforceSitePath}
         {name: 'workforce-profiles-list-guid', value: workforceProfilesListGuid}
         {name: 'workforce-logins-list-guid', value: workforceLoginsListGuid}
+        {name: 'wf-photos-service-base-url', value: wfPhotosServiceBaseUrl}
       ]
     }
     template: {
@@ -132,6 +136,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path'}
             {name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'workforce-profiles-list-guid'}
             {name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'workforce-logins-list-guid'}
+            {name: 'WF_PHOTOS_SERVICE_BASE_URL', secretRef: 'wf-photos-service-base-url'}
           ]
         }
       ]
