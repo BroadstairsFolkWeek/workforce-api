@@ -3,6 +3,7 @@ import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import profilesApi from "./profiles";
+import usersApi from "./users";
 
 const api = new Hono().basePath("/api");
 
@@ -17,5 +18,6 @@ api.get("/", (c) => {
 });
 
 api.route("profiles", profilesApi);
+api.route("users", usersApi);
 
 export default api;

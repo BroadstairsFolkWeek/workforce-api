@@ -17,10 +17,13 @@ const ApiProfile = S.Struct({
 
 export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}
 
+export const GetProfileResponse = ApiProfile;
 export const GetProfilesResponse = S.Array(ApiProfile);
 
 export const SetProfilePhotoResponse = ApiProfile;
 
+export interface GetProfileResponse
+  extends S.Schema.Type<typeof GetProfileResponse> {}
 export interface GetProfilesResponse
   extends S.Schema.Type<typeof GetProfilesResponse> {}
 
