@@ -13,7 +13,7 @@ import { UserLoginsGraphListAccess } from "./graph/user-logins-graph-list-access
 import {
   PersistedGraphListItem,
   PersistedGraphListItemFields,
-} from "./interfaces/graph/graph-items";
+} from "./interfaces/graph/graph-list-items";
 
 const fieldsToUserLogin = (fields: PersistedGraphListItemFields) =>
   Schema.decodeUnknown(ModelPersistedUserLogin)(fields);

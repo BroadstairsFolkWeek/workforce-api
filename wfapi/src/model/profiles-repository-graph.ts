@@ -6,11 +6,13 @@ import {
   ModelAddableProfile,
   ModelPersistedProfile,
   ModelProfileId,
+  ModelProfileUpdates,
+  ModelProfilesUpdates,
 } from "./interfaces/profile";
 import {
   PersistedGraphListItem,
   PersistedGraphListItemFields,
-} from "./interfaces/graph/graph-items";
+} from "./interfaces/graph/graph-list-items";
 
 const fieldsToProfile = (fields: PersistedGraphListItemFields) =>
   Schema.decodeUnknown(ModelPersistedProfile)(fields);
@@ -21,24 +23,35 @@ const graphListItemToProfile = (
   return fieldsToProfile(item.fields);
 };
 
-const modelGetProfileByFilter = (filter: string) => {
-  return ProfilesGraphListAccess.pipe(
+const modelGetProfileGraphListItemByFilter = (filter: string) =>
+  ProfilesGraphListAccess.pipe(
     Effect.flatMap((listAccess) =>
       listAccess.getProfileGraphListItemsByFilter(filter)
     ),
     Effect.head,
     Effect.catchTag("NoSuchElementException", () =>
       Effect.fail(new ProfileNotFound())
-    ),
+    )
+  );
+
+const modelGetProfileByFilter = (filter: string) =>
+  modelGetProfileGraphListItemByFilter(filter).pipe(
     Effect.flatMap((item) => graphListItemToProfile(item)),
     // Parse errors of data from Graph/SharePoint are considered unrecoverable.
     Effect.catchTag("ParseError", (e) => Effect.die(e))
   );
-};
+
+const modelGetProfileGraphListItemByProfileId = (profileId: ModelProfileId) =>
+  modelGetProfileGraphListItemByFilter(`fields/ProfileId eq '${profileId}'`);
 
 const modelGetProfileByProfileId = (profileId: ModelProfileId) => {
   return modelGetProfileByFilter(`fields/ProfileId eq '${profileId}'`);
 };
+
+const getProfileListItemIdIdForProfileId = (profileId: ModelProfileId) =>
+  modelGetProfileGraphListItemByProfileId(profileId).pipe(
+    Effect.map((item) => item.id!)
+  );
 
 const modelGetProfiles = () => {
   return ProfilesGraphListAccess.pipe(
@@ -64,6 +77,26 @@ const modelCreateProfile = (addableProfile: ModelAddableProfile) => {
   );
 };
 
+const updateProfile = (
+  profileId: ModelProfileId,
+  updates: ModelProfileUpdates
+) =>
+  getProfileListItemIdIdForProfileId(profileId).pipe(
+    Effect.andThen((listItemId) =>
+      ProfilesGraphListAccess.pipe(
+        Effect.andThen((listAccess) =>
+          Schema.encode(ModelProfilesUpdates)(updates).pipe(
+            Effect.andThen(listAccess.updateProfileGraphListItem(listItemId)),
+            Effect.andThen(fieldsToProfile),
+
+            // Parse errors of data from Graph/SharePoint are considered unrecoverable.
+            Effect.catchTag("ParseError", (e) => Effect.die(e))
+          )
+        )
+      )
+    )
+  );
+
 export const profilesRepositoryLive = Layer.effect(
   ProfilesRepository,
   ProfilesGraphListAccess.pipe(
@@ -80,6 +113,14 @@ export const profilesRepositoryLive = Layer.effect(
 
       modelGetProfiles: () =>
         modelGetProfiles().pipe(
+          Effect.provideService(ProfilesGraphListAccess, service)
+        ),
+
+      modelUpdateProfile: (
+        profileId: ModelProfileId,
+        updates: ModelProfileUpdates
+      ) =>
+        updateProfile(profileId, updates).pipe(
           Effect.provideService(ProfilesGraphListAccess, service)
         ),
     }))

@@ -1,4 +1,6 @@
 import { Effect } from "effect";
+import { List } from "@microsoft/microsoft-graph-types";
+
 import {
   graphRequestDeleteOrDie,
   graphRequestGetOrDie,
@@ -12,10 +14,41 @@ import {
   PersistedGraphListItem,
   PersistedGraphListItemFields,
   UpdatableGraphListItemFields,
-} from "../interfaces/graph/graph-items";
+} from "../interfaces/graph/graph-list-items";
+import { DocumentLibraryList } from "../interfaces/graph/graph-lists";
 
 // Consider any error whilst retrieving the siteId as an unexpected (and unrecoverable) error.
 const siteIdEffect = getSiteId().pipe(Effect.orDie);
+
+export const getListByTitle =
+  (title: string) =>
+  (expand: string[] = []) => {
+    return siteIdEffect.pipe(
+      Effect.andThen((siteId) =>
+        GraphClient.pipe(
+          Effect.andThen((gc) => gc.client),
+          Effect.andThen((client) =>
+            client.api(`/sites/${siteId}/lists/${title}`).expand(expand)
+          ),
+          Effect.andThen(graphRequestGetOrDie),
+          // No graph errors for get requests against a list are expected to be recoverable.
+          Effect.catchTag("GraphClientGraphError", (e) =>
+            Effect.die(e.graphError)
+          ),
+          Effect.andThen((graphResponse) => graphResponse as List)
+        )
+      )
+    );
+  };
+
+export const getDocumentLibraryListByTitle = (title: string) =>
+  getListByTitle(title)(["drive"]).pipe(
+    Effect.andThen((list) =>
+      list.drive
+        ? Effect.succeed(list as DocumentLibraryList)
+        : Effect.die("Expected drive to be defined")
+    )
+  );
 
 export const getListItemsByFilter =
   (listId: string) =>
@@ -48,7 +81,7 @@ export const getListItemsByFilter =
 export const updateGraphListItemFields =
   (listId: string) =>
   <RetT extends PersistedGraphListItemFields>(
-    id: number,
+    id: number | string,
     changes: UpdatableGraphListItemFields
   ) => {
     return siteIdEffect.pipe(

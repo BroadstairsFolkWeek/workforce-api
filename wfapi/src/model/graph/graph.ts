@@ -45,6 +45,19 @@ export const graphRequestPostOrDie = (gr: GraphRequest) => (body: unknown) =>
     )
   );
 
+export const graphRequestPut = (gr: GraphRequest) => (body: unknown) =>
+  Effect.tryPromise({
+    try: () => gr.put(body),
+    catch: (e) => wrapIfGraphError(e),
+  });
+
+export const graphRequestPutOrDie = (gr: GraphRequest) => (body: unknown) =>
+  graphRequestPut(gr)(body).pipe(
+    Effect.catchAll((e) =>
+      e instanceof GraphClientGraphError ? Effect.fail(e) : Effect.die(e)
+    )
+  );
+
 export const graphRequestDelete = (gr: GraphRequest) =>
   Effect.tryPromise({
     try: () => gr.delete(),

@@ -1,5 +1,5 @@
 import { Effect, Context } from "effect";
-import { PersistedGraphListItem } from "../interfaces/graph/graph-items";
+import { PersistedGraphListItem } from "../interfaces/graph/graph-list-items";
 import {
   ModelEncodedAddableUserLogin,
   ModelEncodedPersistedUserLogin,

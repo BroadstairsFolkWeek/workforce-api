@@ -4,10 +4,12 @@ import { ProfilesGraphListAccess } from "./profiles-graph-list-access";
 import {
   createGraphListItem,
   getListItemsByFilter,
+  updateGraphListItemFields,
 } from "./common-graph-list-access";
 import {
   ModelEncodedAddableProfile,
   ModelEncodedPersistedProfile,
+  ModelEncodedProfileUpdates,
 } from "../interfaces/profile";
 
 // Any config error is unrecoverable.
@@ -18,17 +20,25 @@ const profilesListId = Config.string("WORKFORCE_PROFILES_LIST_GUID").pipe(
 export const profilesGraphListAccessLive = Layer.effect(
   ProfilesGraphListAccess,
   Effect.all([profilesListId, GraphClient]).pipe(
-    Effect.map(([userLoginsListId, graphClient]) =>
+    Effect.map(([profilesListId, graphClient]) =>
       ProfilesGraphListAccess.of({
         getProfileGraphListItemsByFilter: (filter?: string) =>
-          getListItemsByFilter(userLoginsListId)<ModelEncodedPersistedProfile>(
+          getListItemsByFilter(profilesListId)<ModelEncodedPersistedProfile>(
             filter
           ).pipe(Effect.provideService(GraphClient, graphClient)),
 
         createProfileGraphListItem: (fields: ModelEncodedAddableProfile) =>
-          createGraphListItem(userLoginsListId)(fields).pipe(
+          createGraphListItem(profilesListId)(fields).pipe(
             Effect.provideService(GraphClient, graphClient)
           ),
+
+        updateProfileGraphListItem:
+          (listItemId: string) => (updates: ModelEncodedProfileUpdates) =>
+            updateGraphListItemFields(
+              profilesListId
+            )<ModelEncodedPersistedProfile>(listItemId, updates).pipe(
+              Effect.provideService(GraphClient, graphClient)
+            ),
       })
     )
   )

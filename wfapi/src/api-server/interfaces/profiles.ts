@@ -19,5 +19,10 @@ export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}
 
 export const GetProfilesResponse = S.Array(ApiProfile);
 
+export const SetProfilePhotoResponse = ApiProfile;
+
 export interface GetProfilesResponse
   extends S.Schema.Type<typeof GetProfilesResponse> {}
+
+export interface SetProfilePhotoResponse
+  extends S.Schema.Type<typeof SetProfilePhotoResponse> {}
