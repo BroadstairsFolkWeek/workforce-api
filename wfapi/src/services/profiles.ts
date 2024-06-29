@@ -68,18 +68,18 @@ export const getProfiles = () =>
   ).pipe(Effect.andThen(Effect.forEach(addPhotoUrlToProfile)));
 
 export const setProfilePhoto = (
-  profileId: ModelProfileId,
+  userId: ModelUserId,
   mimeType: SupportedPhotoMimeType,
   content: Buffer
 ) =>
-  getProfileByProfileId(profileId)
+  getProfileByUserId(userId)
     .pipe(
       Effect.andThen((profile) =>
         addPhoto(mimeType, content, profile.displayName, profile.surname).pipe(
           Effect.andThen((photoId) =>
             ProfilesRepository.pipe(
               Effect.andThen((repo) =>
-                repo.modelUpdateProfile(profileId, {
+                repo.modelUpdateProfile(profile.profileId, {
                   photoIds: [photoId],
                   version: profile.version + 1,
                 })
