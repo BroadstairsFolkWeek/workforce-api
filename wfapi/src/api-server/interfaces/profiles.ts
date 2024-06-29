@@ -15,7 +15,14 @@ const ApiProfile = S.Struct({
   dbId: S.Number,
 });
 
+export const ApiProfileUpdates = ApiProfile.pipe(
+  S.omit("profileId", "version", "dbId", "photoUrl", "photoId"),
+  S.partial()
+);
+
 export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}
+export interface ApiProfileUpdates
+  extends S.Schema.Type<typeof ApiProfileUpdates> {}
 
 export const GetProfileResponse = ApiProfile;
 export const GetProfilesResponse = S.Array(ApiProfile);

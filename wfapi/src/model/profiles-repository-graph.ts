@@ -7,7 +7,6 @@ import {
   ModelPersistedProfile,
   ModelProfileId,
   ModelProfileUpdates,
-  ModelProfilesUpdates,
 } from "./interfaces/profile";
 import {
   PersistedGraphListItem,
@@ -85,7 +84,7 @@ const updateProfile = (
     Effect.andThen((listItemId) =>
       ProfilesGraphListAccess.pipe(
         Effect.andThen((listAccess) =>
-          Schema.encode(ModelProfilesUpdates)(updates).pipe(
+          Schema.encode(ModelProfileUpdates)(updates).pipe(
             Effect.andThen(listAccess.updateProfileGraphListItem(listItemId)),
             Effect.andThen(fieldsToProfile),
 

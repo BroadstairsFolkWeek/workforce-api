@@ -5,6 +5,7 @@ import { ProfilesRepository } from "../model/profiles-repository";
 import {
   ModelPersistedProfile,
   ModelProfileId,
+  ModelProfileUpdates,
 } from "../model/interfaces/profile";
 import {
   SupportedPhotoMimeType,
@@ -13,9 +14,16 @@ import {
 } from "./photos";
 import { PhotosRepository } from "../model/photos-repository";
 
+export class ProfileVersionMismatch {
+  readonly _tag = "ProfileVersionMismatch";
+}
+
 interface Profile extends ModelPersistedProfile {
   photoUrl?: string;
 }
+
+interface ProfileUpdates
+  extends Omit<ModelProfileUpdates, "version" | "photoIds"> {}
 
 const photoIdFromEncodedPhotoId = (encodedPhotoId: string) => {
   const splitIds = encodedPhotoId.split(":");
@@ -66,6 +74,28 @@ export const getProfiles = () =>
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfiles())
   ).pipe(Effect.andThen(Effect.forEach(addPhotoUrlToProfile)));
+
+const updateProfileIfVersionMatches =
+  (version: number, updates: ProfileUpdates) => (profile: Profile) => {
+    if (profile.version === version) {
+      return ProfilesRepository.pipe(
+        Effect.andThen((repo) =>
+          repo.modelUpdateProfile(profile.profileId, {
+            ...updates,
+            version: version + 1,
+          })
+        )
+      );
+    } else {
+      return Effect.fail(new ProfileVersionMismatch());
+    }
+  };
+
+export const updateProfileByUserId =
+  (userId: ModelUserId, version: number) => (updates: ProfileUpdates) =>
+    getProfileByUserId(userId)
+      .pipe(Effect.andThen(updateProfileIfVersionMatches(version, updates)))
+      .pipe(Effect.andThen(addPhotoUrlToProfile));
 
 export const setProfilePhoto = (
   userId: ModelUserId,

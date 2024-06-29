@@ -28,7 +28,7 @@ const ModelProfilePersistanceData = S.Struct({
   ),
 });
 
-export const ModelProfilesUpdates = S.partial(ModelCoreProfile);
+export const ModelProfileUpdates = S.partial(ModelCoreProfile);
 
 export const ModelAddableProfile = S.extend(
   ModelCoreProfile,
@@ -41,7 +41,7 @@ export const ModelPersistedProfile = S.extend(
 );
 
 export interface ModelProfileUpdates
-  extends S.Schema.Type<typeof ModelProfilesUpdates> {}
+  extends S.Schema.Type<typeof ModelProfileUpdates> {}
 
 export interface ModelAddableProfile
   extends S.Schema.Type<typeof ModelAddableProfile> {}
@@ -50,7 +50,7 @@ export interface ModelPersistedProfile
   extends S.Schema.Type<typeof ModelPersistedProfile> {}
 
 export interface ModelEncodedProfileUpdates
-  extends S.Schema.Encoded<typeof ModelProfilesUpdates> {}
+  extends S.Schema.Encoded<typeof ModelProfileUpdates> {}
 
 export interface ModelEncodedAddableProfile
   extends S.Schema.Encoded<typeof ModelAddableProfile> {}

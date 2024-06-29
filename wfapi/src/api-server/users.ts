@@ -4,14 +4,24 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import {
+  ApiProfileUpdates,
   GetProfileResponse,
   SetProfilePhotoResponse,
 } from "./interfaces/profiles";
-import { getProfileByUserId, setProfilePhoto } from "../services/profiles";
+import {
+  getProfileByUserId,
+  setProfilePhoto,
+  updateProfileByUserId,
+} from "../services/profiles";
 import { ModelUserId } from "../model/interfaces/user-login";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
+
+const patchProfileBodySchema = z.object({
+  version: z.number(),
+  updates: z.unknown(),
+});
 
 const putPhotoBodySchema = z.object({
   contentMimeType: z.enum(["image/jpeg", "image/png"]),
@@ -40,6 +50,41 @@ usersApi.get(
       );
 
     const runnable = getProfileProgram.pipe(
+      Effect.provide(repositoriesLayerLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.patch(
+  "/:userId/profile",
+  zValidator("param", userIdParamSchema),
+  zValidator("json", patchProfileBodySchema),
+  async (c) => {
+    const { userId } = c.req.valid("param");
+    const { version, updates } = c.req.valid("json");
+
+    const patchProfileProgram = S.decodeUnknown(ApiProfileUpdates)(updates)
+      .pipe(
+        Effect.andThen(
+          updateProfileByUserId(ModelUserId.make(userId), version)
+        ),
+        Effect.andThen(S.encode(GetProfileResponse)),
+        Effect.andThen((body) => c.json(body, 200))
+      )
+      .pipe(
+        Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
+        Effect.catchTag("ProfileNotFound", () =>
+          Effect.succeed(c.json({}, 404))
+        ),
+        Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500))),
+        Effect.catchTag("ProfileVersionMismatch", () =>
+          Effect.succeed(c.json({}, 409))
+        )
+      );
+
+    const runnable = patchProfileProgram.pipe(
       Effect.provide(repositoriesLayerLive)
     );
 
