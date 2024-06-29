@@ -130,7 +130,7 @@ test("Adding a new profile photo causes the photo ID to be applied to the profil
 
   const photoBuffer = Buffer.from("test photo");
 
-  const program = setProfilePhoto(testProfileId, "image/png", photoBuffer);
+  const program = setProfilePhoto(testUserId, "image/png", photoBuffer);
 
   const runnable = Effect.provide(program, mockLayers);
 
