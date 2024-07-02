@@ -31,8 +31,10 @@ const testUserLogin: ModelPersistedUserLogin = {
 };
 
 const mockPhotosRepository = Layer.succeed(PhotosRepository, {
-  modelGetPhotoUrlForPhotoId: (photoId: string) =>
-    Effect.succeed(new URL(`/photos/${photoId}`, photoBaseUrl)),
+  modelGetPhotoUrlsForPhotoId: (photoId: string) => ({
+    photoUrl: new URL(`/photos/${photoId}`, photoBaseUrl),
+    photoThumbnailUrl: new URL(`/photos/${photoId}/thumbnail`, photoBaseUrl),
+  }),
   modelAddPhoto: () => Effect.succeed(addedPhotoId),
 });
 
