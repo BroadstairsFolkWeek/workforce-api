@@ -5,6 +5,7 @@ import {
   ModelAddablePhoto,
   ModelPhoto,
   ModelPhotoId,
+  ModelPhotoUrls,
 } from "./interfaces/photo";
 import { PhotosGraphAccess } from "./graph/photos-graph-access";
 
@@ -51,6 +52,15 @@ const addPhoto = (
     Effect.catchTag("ParseError", () => Effect.die("Failed to parse photo."))
   );
 
+const getPhotoUrlsForPhotoId =
+  (photosServiceBaseUrlString: string) =>
+  (photoId: string): ModelPhotoUrls => ({
+    photoUrl: new URL(`${photosServiceBaseUrlString}/photos/${photoId}`),
+    photoThumbnailUrl: new URL(
+      `${photosServiceBaseUrlString}/photos/${photoId}/thumbnail`
+    ),
+  });
+
 export const photosRepositoryLive = Layer.effect(
   PhotosRepository,
   Effect.all([
@@ -58,10 +68,9 @@ export const photosRepositoryLive = Layer.effect(
     PhotosGraphAccess,
   ]).pipe(
     Effect.map(([photosServiceBaseUrlString, photosGraphAccess]) => ({
-      modelGetPhotoUrlForPhotoId: (photoId: string) =>
-        Effect.succeed(
-          new URL(`${photosServiceBaseUrlString}/photos/${photoId}`)
-        ),
+      modelGetPhotoUrlsForPhotoId: getPhotoUrlsForPhotoId(
+        photosServiceBaseUrlString
+      ),
 
       modelAddPhoto: (
         content: Buffer,

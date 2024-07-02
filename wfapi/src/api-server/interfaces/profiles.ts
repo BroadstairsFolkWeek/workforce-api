@@ -11,6 +11,7 @@ const ApiProfile = S.Struct({
   telephone: S.optional(S.String),
   version: S.Number,
   photoUrl: S.optional(S.String),
+  photoThumbnailUrl: S.optional(S.String),
   photoId: S.optional(S.String),
   dbId: S.Number,
 });

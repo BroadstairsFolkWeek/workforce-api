@@ -10,7 +10,7 @@ import {
 import {
   SupportedPhotoMimeType,
   addPhoto,
-  getPhotoUrlForPhotoId,
+  getPhotoUrlsForPhotoId,
 } from "./photos";
 import { PhotosRepository } from "../model/photos-repository";
 
@@ -20,6 +20,7 @@ export class ProfileVersionMismatch {
 
 interface Profile extends ModelPersistedProfile {
   photoUrl?: string;
+  photoThumbnailUrl?: string;
 }
 
 interface ProfileUpdates
@@ -34,16 +35,17 @@ const photoIdFromEncodedPhotoId = (encodedPhotoId: string) => {
   }
 };
 
-const addPhotoUrlToProfile = (
+const addPhotoUrlsToProfile = (
   profile: ModelPersistedProfile
 ): Effect.Effect<Profile, never, PhotosRepository> => {
   if (profile.photoIds && profile.photoIds.length > 0) {
     const photoId = profile.photoIds[0];
-    return getPhotoUrlForPhotoId(photoIdFromEncodedPhotoId(photoId)).pipe(
-      Effect.andThen((photoUrl) => {
+    return getPhotoUrlsForPhotoId(photoIdFromEncodedPhotoId(photoId)).pipe(
+      Effect.andThen((photoUrls) => {
         return {
           ...profile,
-          photoUrl: photoUrl.href,
+          photoUrl: photoUrls.photoUrl.href,
+          photoThumbnailUrl: photoUrls.photoThumbnailUrl.href,
         };
       })
     );
@@ -63,17 +65,17 @@ export const getProfileByUserId = (userId: ModelUserId) =>
         )
       )
     )
-    .pipe(Effect.andThen(addPhotoUrlToProfile));
+    .pipe(Effect.andThen(addPhotoUrlsToProfile));
 
 export const getProfileByProfileId = (profileId: ModelProfileId) =>
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfileByProfileId(profileId))
-  ).pipe(Effect.andThen(addPhotoUrlToProfile));
+  ).pipe(Effect.andThen(addPhotoUrlsToProfile));
 
 export const getProfiles = () =>
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfiles())
-  ).pipe(Effect.andThen(Effect.forEach(addPhotoUrlToProfile)));
+  ).pipe(Effect.andThen(Effect.forEach(addPhotoUrlsToProfile)));
 
 const updateProfileIfVersionMatches =
   (version: number, updates: ProfileUpdates) => (profile: Profile) => {
@@ -95,7 +97,7 @@ export const updateProfileByUserId =
   (userId: ModelUserId, version: number) => (updates: ProfileUpdates) =>
     getProfileByUserId(userId)
       .pipe(Effect.andThen(updateProfileIfVersionMatches(version, updates)))
-      .pipe(Effect.andThen(addPhotoUrlToProfile));
+      .pipe(Effect.andThen(addPhotoUrlsToProfile));
 
 export const setProfilePhoto = (
   userId: ModelUserId,
@@ -119,4 +121,4 @@ export const setProfilePhoto = (
         )
       )
     )
-    .pipe(Effect.andThen(addPhotoUrlToProfile));
+    .pipe(Effect.andThen(addPhotoUrlsToProfile));

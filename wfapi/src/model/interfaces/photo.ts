@@ -28,6 +28,11 @@ export const ModelPhoto = S.extend(
   ModelPhotoPersistanceData
 );
 
+export interface ModelPhotoUrls {
+  photoUrl: URL;
+  photoThumbnailUrl: URL;
+}
+
 export interface ModelAddablePhoto
   extends S.Schema.Type<typeof ModelAddablePhoto> {}
 

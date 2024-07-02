@@ -60,7 +60,7 @@ const getFirstPhotoContentByFilter = (filter: string) =>
     Effect.catchTag("ResponseError", (e) => Effect.die(e))
   );
 
-const modelGetPhotoContentByPhotoId = (photoId: string) =>
+const getPhotoContentByPhotoId = (photoId: string) =>
   getFirstPhotoContentByFilter(`fields/PhotoId eq '${photoId}'`);
 
 export const photosRepositoryLive = Layer.effect(
@@ -68,7 +68,13 @@ export const photosRepositoryLive = Layer.effect(
   Effect.all([PhotosGraphListAccess, FetchApi]).pipe(
     Effect.map(([service, fetchApi]) => ({
       modelGetPhotoByPhotoId: (photoId: string) =>
-        modelGetPhotoContentByPhotoId(photoId).pipe(
+        getPhotoContentByPhotoId(photoId).pipe(
+          Effect.provideService(PhotosGraphListAccess, service),
+          Effect.provideService(FetchApi, fetchApi)
+        ),
+
+      modelGetPhotoThumbnailByPhotoId: (photoId: string) =>
+        getPhotoContentByPhotoId(photoId).pipe(
           Effect.provideService(PhotosGraphListAccess, service),
           Effect.provideService(FetchApi, fetchApi)
         ),

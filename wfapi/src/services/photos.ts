@@ -5,9 +5,9 @@ import { ModelPhotoId } from "../model/interfaces/photo";
 
 export type SupportedPhotoMimeType = "image/jpeg" | "image/png";
 
-export const getPhotoUrlForPhotoId = (photoId: string) =>
+export const getPhotoUrlsForPhotoId = (photoId: string) =>
   PhotosRepository.pipe(
-    Effect.andThen((repo) => repo.modelGetPhotoUrlForPhotoId(photoId))
+    Effect.andThen((repo) => repo.modelGetPhotoUrlsForPhotoId(photoId))
   );
 
 const getExtensionForMimeType = (mimeType: SupportedPhotoMimeType) => {

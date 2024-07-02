@@ -15,5 +15,9 @@ export class PhotosRepository extends Context.Tag("PhotosRepository")<
     readonly modelGetPhotoByPhotoId: (
       profileId: string
     ) => Effect.Effect<PhotoContent, PhotoNotFound>;
+
+    readonly modelGetPhotoThumbnailByPhotoId: (
+      profileId: string
+    ) => Effect.Effect<PhotoContent, PhotoNotFound>;
   }
 >() {}

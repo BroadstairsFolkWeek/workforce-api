@@ -1,13 +1,10 @@
 import { Effect, Context } from "effect";
-import { URL } from "url";
-import { ModelPhotoId } from "./interfaces/photo";
+import { ModelPhotoId, ModelPhotoUrls } from "./interfaces/photo";
 
 export class PhotosRepository extends Context.Tag("PhotosRepository")<
   PhotosRepository,
   {
-    readonly modelGetPhotoUrlForPhotoId: (
-      photoId: string
-    ) => Effect.Effect<URL>;
+    readonly modelGetPhotoUrlsForPhotoId: (photoId: string) => ModelPhotoUrls;
 
     readonly modelAddPhoto: (
       content: Buffer,
