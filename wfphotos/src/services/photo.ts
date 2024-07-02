@@ -8,5 +8,5 @@ export const getPhotoByPhotoId = (photoId: string) =>
 
 export const getPhotoThumbnailByPhotoId = (photoId: string) =>
   PhotosRepository.pipe(
-    Effect.andThen((repo) => repo.modelGetPhotoByPhotoId(photoId))
+    Effect.andThen((repo) => repo.modelGetPhotoThumbnailByPhotoId(photoId))
   );
