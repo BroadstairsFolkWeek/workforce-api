@@ -7,6 +7,7 @@ import {
   ApiProfileUpdates,
   GetProfileResponse,
   SetProfilePhotoResponse,
+  UpdateProfileResponse,
 } from "./interfaces/profiles";
 import {
   getProfileByUserId,
@@ -38,6 +39,7 @@ usersApi.get(
 
     const getProfileProgram = getProfileByUserId(ModelUserId.make(userId!))
       .pipe(
+        Effect.andThen((profile) => ({ data: profile })),
         Effect.andThen(S.encode(GetProfileResponse)),
         Effect.andThen((body) => c.json(body, 200))
       )
@@ -70,7 +72,8 @@ usersApi.patch(
         Effect.andThen(
           updateProfileByUserId(ModelUserId.make(userId), version)
         ),
-        Effect.andThen(S.encode(GetProfileResponse)),
+        Effect.andThen((profile) => ({ data: profile })),
+        Effect.andThen(S.encode(UpdateProfileResponse)),
         Effect.andThen((body) => c.json(body, 200))
       )
       .pipe(
@@ -109,6 +112,7 @@ usersApi.put(
       photoContent
     )
       .pipe(
+        Effect.andThen((profile) => ({ data: profile })),
         Effect.andThen(S.encode(SetProfilePhotoResponse)),
         Effect.andThen((profile) => Effect.succeed(c.json(profile, 200)))
       )

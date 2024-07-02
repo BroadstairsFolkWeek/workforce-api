@@ -10,6 +10,7 @@ const profilesApi = new Hono();
 profilesApi.get("/", async (c) => {
   const getProfilesEffect = getProfiles()
     .pipe(
+      Effect.andThen((profiles) => ({ data: profiles })),
       Effect.andThen(S.encode(GetProfilesResponse)),
       Effect.andThen((body) => c.json(body, 200))
     )

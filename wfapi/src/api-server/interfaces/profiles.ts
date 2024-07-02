@@ -24,10 +24,21 @@ export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}
 export interface ApiProfileUpdates
   extends S.Schema.Type<typeof ApiProfileUpdates> {}
 
-export const GetProfileResponse = ApiProfile;
-export const GetProfilesResponse = S.Array(ApiProfile);
+export const GetProfilesResponse = S.Struct({
+  data: S.Array(ApiProfile),
+});
 
-export const SetProfilePhotoResponse = ApiProfile;
+export const GetProfileResponse = S.Struct({
+  data: ApiProfile,
+});
+
+export const UpdateProfileResponse = S.Struct({
+  data: ApiProfile,
+});
+
+export const SetProfilePhotoResponse = S.Struct({
+  data: ApiProfile,
+});
 
 export interface GetProfileResponse
   extends S.Schema.Type<typeof GetProfileResponse> {}
