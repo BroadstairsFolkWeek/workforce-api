@@ -13,7 +13,9 @@ export class ProfilesGraphListAccess extends Context.Tag(
   {
     readonly getProfileGraphListItemsByFilter: (
       filter?: string
-    ) => Effect.Effect<PersistedGraphListItem<ModelEncodedPersistedProfile>[]>;
+    ) => Effect.Effect<
+      readonly PersistedGraphListItem<ModelEncodedPersistedProfile>[]
+    >;
 
     readonly createProfileGraphListItem: (
       fields: ModelEncodedAddableProfile

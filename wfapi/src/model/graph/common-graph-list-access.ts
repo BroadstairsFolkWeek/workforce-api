@@ -99,7 +99,9 @@ export const getListItemsByFilter =
               Effect.andThen((gr) => (filter ? gr.filter(filter) : gr)),
               Effect.andThen(graphRequestGetOrDie),
               Effect.andThen((response) => response as PageCollection),
-              Effect.andThen(collectGraphListItemPages(client))
+              Effect.andThen((pageCollection) =>
+                collectGraphListItemPages(client)<RetT>(pageCollection)
+              )
             )
           ),
           // No graph errors for get requests against a list are expected to be recoverable.

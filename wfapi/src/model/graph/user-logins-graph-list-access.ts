@@ -13,7 +13,7 @@ export class UserLoginsGraphListAccess extends Context.Tag(
     readonly getUserLoginGraphListItemsByFilter: (
       filter?: string
     ) => Effect.Effect<
-      PersistedGraphListItem<ModelEncodedPersistedUserLogin>[]
+      readonly PersistedGraphListItem<ModelEncodedPersistedUserLogin>[]
     >;
 
     readonly createUserLoginGraphListItem: (
