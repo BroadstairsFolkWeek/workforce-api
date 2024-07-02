@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Chunk, Effect, pipe } from "effect";
 import { List } from "@microsoft/microsoft-graph-types";
 
 import {
@@ -16,6 +16,12 @@ import {
   UpdatableGraphListItemFields,
 } from "../interfaces/graph/graph-list-items";
 import { DocumentLibraryList } from "../interfaces/graph/graph-lists";
+import {
+  Client,
+  PageCollection,
+  PageIterator,
+  PageIteratorCallback,
+} from "@microsoft/microsoft-graph-client";
 
 // Consider any error whilst retrieving the siteId as an unexpected (and unrecoverable) error.
 const siteIdEffect = getSiteId().pipe(Effect.orDie);
@@ -50,6 +56,29 @@ export const getDocumentLibraryListByTitle = (title: string) =>
     )
   );
 
+const collectGraphListItemPages =
+  (client: Client) =>
+  <T extends PersistedGraphListItemFields>(pageCollection: PageCollection) => {
+    let collection = Chunk.empty<PersistedGraphListItem<T>>();
+
+    const callback: PageIteratorCallback = (
+      item: PersistedGraphListItem<T>
+    ) => {
+      collection = Chunk.append(collection, item);
+      return true;
+    };
+
+    const pageIterator = new PageIterator(client, pageCollection, callback);
+
+    return Effect.tryPromise({
+      try: async () => {
+        await pageIterator.iterate();
+        return Chunk.toReadonlyArray(collection);
+      },
+      catch: (e) => Error("" + e),
+    }).pipe(Effect.catchAll((e) => Effect.die(e)));
+  };
+
 export const getListItemsByFilter =
   (listId: string) =>
   <RetT extends PersistedGraphListItemFields>(
@@ -61,17 +90,21 @@ export const getListItemsByFilter =
         GraphClient.pipe(
           Effect.andThen((gc) => gc.client),
           Effect.andThen((client) =>
-            client.api(`/sites/${siteId}/lists/${listId}/items`).expand(expand)
+            pipe(
+              Effect.succeed(
+                client
+                  .api(`/sites/${siteId}/lists/${listId}/items`)
+                  .expand(expand)
+              ),
+              Effect.andThen((gr) => (filter ? gr.filter(filter) : gr)),
+              Effect.andThen(graphRequestGetOrDie),
+              Effect.andThen((response) => response as PageCollection),
+              Effect.andThen(collectGraphListItemPages(client))
+            )
           ),
-          Effect.andThen((gr) => (filter ? gr.filter(filter) : gr)),
-          Effect.andThen(graphRequestGetOrDie),
           // No graph errors for get requests against a list are expected to be recoverable.
           Effect.catchTag("GraphClientGraphError", (e) =>
             Effect.die(e.graphError)
-          ),
-          Effect.andThen(
-            (graphResponse) =>
-              graphResponse.value as PersistedGraphListItem<RetT>[]
           )
         )
       )
