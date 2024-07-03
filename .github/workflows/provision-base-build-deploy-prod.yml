@@ -82,7 +82,7 @@ jobs:
 
       - name: Determine the wf-photos container image tag
         id: tag-wf-photos
-        run: echo "photosContainerImage=$acrLoginServer/workforce-api:${{ github.run_number }}" >> "$GITHUB_ENV"
+        run: echo "photosContainerImage=$acrLoginServer/workforce-photos:${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: Build and push workforce-photos container image
         working-directory: ./wfphotos
