@@ -16,6 +16,7 @@ import {
 } from "../services/profiles";
 import { ModelUserId } from "../model/interfaces/user-login";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
+import { logLevelLive } from "../util/logging";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
 
@@ -39,6 +40,9 @@ usersApi.get(
 
     const getProfileProgram = getProfileByUserId(ModelUserId.make(userId!))
       .pipe(
+        Effect.tap((profile) =>
+          Effect.logTrace(`Retrieved profile for user: ${userId}`, profile)
+        ),
         Effect.andThen((profile) => ({ data: profile })),
         Effect.andThen(S.encode(GetProfileResponse)),
         Effect.andThen((body) => c.json(body, 200))
@@ -52,7 +56,8 @@ usersApi.get(
       );
 
     const runnable = getProfileProgram.pipe(
-      Effect.provide(repositoriesLayerLive)
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(logLevelLive)
     );
 
     return await Effect.runPromise(runnable);
@@ -69,11 +74,23 @@ usersApi.patch(
 
     const patchProfileProgram = S.decodeUnknown(ApiProfileUpdates)(updates)
       .pipe(
+        Effect.tap((profileUpdates) =>
+          Effect.logTrace(
+            `Retrieved profile updates for user: ${userId}`,
+            profileUpdates
+          )
+        ),
         Effect.andThen(
           updateProfileByUserId(ModelUserId.make(userId), version)
         ),
         Effect.andThen((profile) => ({ data: profile })),
         Effect.andThen(S.encode(UpdateProfileResponse)),
+        Effect.tap((updateProfileResponse) =>
+          Effect.logTrace(
+            "Reporting successful profile update",
+            updateProfileResponse
+          )
+        ),
         Effect.andThen((body) => c.json(body, 200))
       )
       .pipe(
@@ -88,7 +105,8 @@ usersApi.patch(
       );
 
     const runnable = patchProfileProgram.pipe(
-      Effect.provide(repositoriesLayerLive)
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(logLevelLive)
     );
 
     return await Effect.runPromise(runnable);
@@ -125,7 +143,10 @@ usersApi.put(
       );
 
     return await Effect.runPromise(
-      putProfilePhotoEffect.pipe(Effect.provide(repositoriesLayerLive))
+      putProfilePhotoEffect.pipe(
+        Effect.provide(repositoriesLayerLive),
+        Effect.provide(logLevelLive)
+      )
     );
   }
 );

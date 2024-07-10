@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { GetProfilesResponse } from "./interfaces/profiles";
 import { getProfiles } from "../services/profiles";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
+import { logLevelLive } from "../util/logging";
 
 const profilesApi = new Hono();
 
@@ -19,7 +20,10 @@ profilesApi.get("/", async (c) => {
     );
 
   return await Effect.runPromise(
-    getProfilesEffect.pipe(Effect.provide(repositoriesLayerLive))
+    getProfilesEffect.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(logLevelLive)
+    )
   );
 });
 

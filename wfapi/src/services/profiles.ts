@@ -57,6 +57,9 @@ const addPhotoUrlsToProfile = (
 export const getProfileByUserId = (userId: ModelUserId) =>
   getUserLogin(userId)
     .pipe(
+      Effect.tap((userLogin) =>
+        Effect.logTrace(`Found login for user: ${userId}`, userLogin)
+      ),
       Effect.andThen((userLogin) =>
         ProfilesRepository.pipe(
           Effect.andThen((repo) =>

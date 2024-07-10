@@ -133,6 +133,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             memory: '0.5Gi'
           }
           env: [
+            {name: 'LOG_LEVEL', value: 'DEBUG'}
             {name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id'}
             {name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id'}
             {name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret'}
