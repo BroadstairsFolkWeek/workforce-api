@@ -1,7 +1,7 @@
 metadata description = 'Deploy the workforce-api Azure Container App'
 
 @description('Container image to deploy to the azure container app')
-param containerImage string 
+param containerImage string
 
 @description('Element to be incorporated in resource names to ensure uniqueness in Azure.')
 @minLength(5)
@@ -64,7 +64,6 @@ param maxReplicas int = 1
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
 
-
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: 'uaid-${resourceBaseName}'
 }
@@ -77,8 +76,6 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
   name: 'cr${resourceBaseName}'
 }
 
-
-
 resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: 'workforce-api'
   location: location
@@ -86,7 +83,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${managedIdentity.id}' : {}
+      '${managedIdentity.id}': {}
     }
   }
   properties: {
@@ -98,7 +95,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           identity: managedIdentity.id
         }
       ]
-      ingress: { 
+      ingress: {
         external: true
         targetPort: 3000
         transport: 'http'
@@ -112,15 +109,15 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           name: 'app-client-secret'
           value: appAadClientSecret
         }
-        {name: 'graph-tenant-id', value: graphTenantId}
-        {name: 'graph-client-id', value: graphClientId}
-        {name: 'graph-client-secret', value: graphClientSecret}
-        {name: 'workforce-site-hostname', value: workforceSiteHostname}
-        {name: 'workforce-site-path', value: workforceSitePath}
-        {name: 'workforce-profiles-list-guid', value: workforceProfilesListGuid}
-        {name: 'workforce-logins-list-guid', value: workforceLoginsListGuid}
-        {name: 'workforce-photos-list-title', value: workforcePhotosListTitle}
-        {name: 'wf-photos-service-base-url', value: wfPhotosServiceBaseUrl}
+        { name: 'graph-tenant-id', value: graphTenantId }
+        { name: 'graph-client-id', value: graphClientId }
+        { name: 'graph-client-secret', value: graphClientSecret }
+        { name: 'workforce-site-hostname', value: workforceSiteHostname }
+        { name: 'workforce-site-path', value: workforceSitePath }
+        { name: 'workforce-profiles-list-guid', value: workforceProfilesListGuid }
+        { name: 'workforce-logins-list-guid', value: workforceLoginsListGuid }
+        { name: 'workforce-photos-list-title', value: workforcePhotosListTitle }
+        { name: 'wf-photos-service-base-url', value: wfPhotosServiceBaseUrl }
       ]
     }
     template: {
@@ -133,16 +130,16 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             memory: '0.5Gi'
           }
           env: [
-            {name: 'LOG_LEVEL', value: 'DEBUG'}
-            {name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id'}
-            {name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id'}
-            {name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret'}
-            {name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforce-site-hostname'}
-            {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path'}
-            {name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'workforce-profiles-list-guid'}
-            {name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'workforce-logins-list-guid'}
-            {name: 'WF_PHOTOS_SERVICE_BASE_URL', secretRef: 'wf-photos-service-base-url'}
-            {name: 'WORKFORCE_PHOTOS_LIST_TITLE', secretRef: 'workforce-photos-list-title'}
+            { name: 'LOG_LEVEL', value: 'DEBUG' }
+            { name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id' }
+            { name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id' }
+            { name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret' }
+            { name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforce-site-hostname' }
+            { name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path' }
+            { name: 'WORKFORCE_PROFILES_LIST_GUID', secretRef: 'workforce-profiles-list-guid' }
+            { name: 'WORKFORCE_LOGINS_LIST_GUID', secretRef: 'workforce-logins-list-guid' }
+            { name: 'WF_PHOTOS_SERVICE_BASE_URL', secretRef: 'wf-photos-service-base-url' }
+            { name: 'WORKFORCE_PHOTOS_LIST_TITLE', secretRef: 'workforce-photos-list-title' }
           ]
         }
       ]
@@ -174,7 +171,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
           }
         }
       }
-      platform:{
+      platform: {
         enabled: true
       }
     }

@@ -15,7 +15,7 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-11-02-
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${managedIdentityId}' : {}
+      '${managedIdentityId}': {}
     }
   }
   properties: {
@@ -57,8 +57,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
   sku: {
     name: 'Basic'
   }
-  properties: {
-  }
+  properties: {}
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

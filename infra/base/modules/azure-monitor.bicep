@@ -9,13 +9,13 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${managedIdentityId}' : {}
+      '${managedIdentityId}': {}
     }
   }
   properties: {
     retentionInDays: 30
-    sku: { 
-      name: 'PerGB2018' 
+    sku: {
+      name: 'PerGB2018'
     }
   }
   tags: tags

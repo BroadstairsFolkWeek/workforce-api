@@ -21,13 +21,12 @@ param tags object = {
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
 
-
 @description('Module that provisions common resources that will be re-used by other resources in the deployment, like managed identities')
 module common 'modules/common.bicep' = {
   name: 'common-resources'
   params: {
     resourceBaseName: resourceBaseName
-    location: location 
+    location: location
     tags: tags
   }
 }

@@ -1,7 +1,7 @@
 metadata description = 'Deploy the workforce-photos Azure Container App'
 
 @description('Container image to deploy to the azure container app')
-param containerImage string 
+param containerImage string
 
 @description('Element to be incorporated in resource names to ensure uniqueness in Azure.')
 @minLength(5)
@@ -44,7 +44,6 @@ param maxReplicas int = 1
 @description('Common part of the name of the resources to be created')
 var resourceBaseName = 'bfwwfapi${environmentName}${resourceUniqueNameElement}'
 
-
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
   name: 'uaid-${resourceBaseName}'
 }
@@ -57,8 +56,6 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
   name: 'cr${resourceBaseName}'
 }
 
-
-
 resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: 'workforce-photos'
   location: location
@@ -66,7 +63,7 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '${managedIdentity.id}' : {}
+      '${managedIdentity.id}': {}
     }
   }
   properties: {
@@ -78,7 +75,7 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
           identity: managedIdentity.id
         }
       ]
-      ingress: { 
+      ingress: {
         external: true
         targetPort: 3001
         transport: 'http'
@@ -88,12 +85,12 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
       activeRevisionsMode: 'Single'
       maxInactiveRevisions: 2
       secrets: [
-        {name: 'graph-tenant-id', value: graphTenantId}
-        {name: 'graph-client-id', value: graphClientId}
-        {name: 'graph-client-secret', value: graphClientSecret}
-        {name: 'workforce-site-hostname', value: workforceSiteHostname}
-        {name: 'workforce-site-path', value: workforceSitePath}
-        {name: 'workforce-photos-list-guid', value: workforcePhotosListGuid}
+        { name: 'graph-tenant-id', value: graphTenantId }
+        { name: 'graph-client-id', value: graphClientId }
+        { name: 'graph-client-secret', value: graphClientSecret }
+        { name: 'workforce-site-hostname', value: workforceSiteHostname }
+        { name: 'workforce-site-path', value: workforceSitePath }
+        { name: 'workforce-photos-list-guid', value: workforcePhotosListGuid }
       ]
     }
     template: {
@@ -106,16 +103,16 @@ resource workforcephotos 'Microsoft.App/containerApps@2023-11-02-preview' = {
             memory: '0.5Gi'
           }
           env: [
-            {name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id'}
-            {name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id'}
-            {name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret'}
-            {name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforce-site-hostname'}
-            {name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path'}
-            {name: 'WORKFORCE_PHOTOS_LIST_GUID', secretRef: 'workforce-photos-list-guid'}
+            { name: 'AZURE_TENANT_ID', secretRef: 'graph-tenant-id' }
+            { name: 'AZURE_CLIENT_ID', secretRef: 'graph-client-id' }
+            { name: 'AZURE_CLIENT_SECRET', secretRef: 'graph-client-secret' }
+            { name: 'WORKFORCE_SITE_HOSTNAME', secretRef: 'workforce-site-hostname' }
+            { name: 'WORKFORCE_SITE_PATH', secretRef: 'workforce-site-path' }
+            { name: 'WORKFORCE_PHOTOS_LIST_GUID', secretRef: 'workforce-photos-list-guid' }
           ]
         }
       ]
-      
+
       scale: {
         minReplicas: minReplicas
         maxReplicas: maxReplicas
