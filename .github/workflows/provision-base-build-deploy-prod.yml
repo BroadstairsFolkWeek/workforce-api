@@ -78,6 +78,7 @@ jobs:
             workforceSitePath=${{ secrets.WORKFORCE_SITE_PATH_PROD }}
             workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_PROD }}
             workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_PROD }}
+            wfApplicationsListGuid=${{ vars.WORKFORCE_APPLICATIONS_LIST_GUID_PROD }}
             wfPhotosServiceBaseUrl=${{ vars.WORKFORCE_PHOTOS_SERVICE_BASE_URL_PROD }}
 
       - name: Determine the wf-photos container image tag
