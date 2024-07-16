@@ -17,6 +17,9 @@ import {
 import { ModelUserId } from "../model/interfaces/user-login";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
 import { logLevelLive } from "../util/logging";
+import { getFormsByUserId } from "../forms/forms";
+import { GetUserFormsResponse } from "./interfaces/forms";
+import { formsLayerLive } from "../contexts/forms-live";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
 
@@ -148,6 +151,45 @@ usersApi.put(
         Effect.provide(logLevelLive)
       )
     );
+  }
+);
+
+usersApi.get(
+  "/:userId/profile/forms",
+  zValidator("param", userIdParamSchema),
+  async (c) => {
+    const { userId } = c.req.valid("param");
+
+    const getFormsProgram = getFormsByUserId(ModelUserId.make(userId!))
+      .pipe(
+        Effect.tap((forms) =>
+          Effect.logTrace(
+            `Retrieved ${forms.length} forms for user: ${userId}`,
+            forms
+          )
+        ),
+        Effect.andThen((profile) => ({ data: profile })),
+        Effect.andThen(S.encode(GetUserFormsResponse)),
+        Effect.andThen((body) => c.json(body, 200))
+      )
+      .pipe(
+        Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
+        Effect.catchTag("ProfileNotFound", () =>
+          Effect.succeed(c.json({}, 404))
+        ),
+        Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500))),
+        Effect.catchTag("FormSpecNotFound", () =>
+          Effect.succeed(c.json({}, 500))
+        )
+      );
+
+    const runnable = getFormsProgram.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
   }
 );
 
