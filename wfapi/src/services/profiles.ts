@@ -194,3 +194,14 @@ export const setProfilePhoto = (
       )
     )
     .pipe(Effect.andThen(decorateProfile));
+
+export const deleteProfileByUserId = (userId: ModelProfileId) =>
+  getProfileByProfileId(userId).pipe(
+    Effect.andThen((profile) =>
+      ProfilesRepository.pipe(
+        Effect.andThen((repo) =>
+          repo.modelDeleteProfileByProfileId(profile.profileId)
+        )
+      )
+    )
+  );

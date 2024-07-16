@@ -39,7 +39,7 @@ const modelGetUserLoginsByFilter = (filter: string) => {
   );
 };
 
-const modelGetUserLoginByIdentityProviderUserId = (id: string) => {
+const modelGetUserLoginByUserId = (id: string) => {
   return modelGetUserLoginsByFilter(`fields/IdentityProviderUserId eq '${id}'`);
 };
 
@@ -56,17 +56,34 @@ const modelCreateUserLogin = (userLogin: ModelAddableUserLogin) => {
   );
 };
 
+const deleteUserByUserId = (userId: ModelUserId) =>
+  modelGetUserLoginByUserId(userId).pipe(
+    Effect.andThen((userLogin) =>
+      UserLoginsGraphListAccess.pipe(
+        Effect.andThen((listAccess) =>
+          listAccess.deleteUserLoginGraphListItem(userLogin.dbId)
+        ),
+        Effect.andThen(userLogin)
+      )
+    )
+  );
+
 export const userLoginRepositoryLive = Layer.effect(
   UserLoginRepository,
   UserLoginsGraphListAccess.pipe(
     Effect.map((service) => ({
       modelGetUserLoginByIdentityProviderUserId: (userId: ModelUserId) =>
-        modelGetUserLoginByIdentityProviderUserId(userId).pipe(
+        modelGetUserLoginByUserId(userId).pipe(
           Effect.provideService(UserLoginsGraphListAccess, service)
         ),
 
       modelCreateUserLogin: (userLogin: ModelAddableUserLogin) =>
         modelCreateUserLogin(userLogin).pipe(
+          Effect.provideService(UserLoginsGraphListAccess, service)
+        ),
+
+      modelDeleteUserByUserId: (userId: ModelUserId) =>
+        deleteUserByUserId(userId).pipe(
           Effect.provideService(UserLoginsGraphListAccess, service)
         ),
     }))

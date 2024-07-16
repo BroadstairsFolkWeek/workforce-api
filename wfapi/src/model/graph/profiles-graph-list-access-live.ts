@@ -3,6 +3,7 @@ import { GraphClient } from "../../graph/graph-client";
 import { ProfilesGraphListAccess } from "./profiles-graph-list-access";
 import {
   createGraphListItem,
+  deleteGraphListItem,
   getListItemsByFilter,
   updateGraphListItemFields,
 } from "./common-graph-list-access";
@@ -39,6 +40,11 @@ export const profilesGraphListAccessLive = Layer.effect(
             )<ModelEncodedPersistedProfile>(listItemId, updates).pipe(
               Effect.provideService(GraphClient, graphClient)
             ),
+
+        deleteProfileGraphListItem: (id: number) =>
+          deleteGraphListItem(profilesListId)(id).pipe(
+            Effect.provideService(GraphClient, graphClient)
+          ),
       })
     )
   )

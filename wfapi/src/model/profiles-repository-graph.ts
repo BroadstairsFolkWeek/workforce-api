@@ -96,6 +96,18 @@ const updateProfile = (
     )
   );
 
+const deleteProfileByProfileId = (profileId: ModelProfileId) =>
+  modelGetProfileByProfileId(profileId).pipe(
+    Effect.andThen((profile) =>
+      ProfilesGraphListAccess.pipe(
+        Effect.andThen((listAccess) =>
+          listAccess.deleteProfileGraphListItem(profile.dbId)
+        ),
+        Effect.andThen(profile)
+      )
+    )
+  );
+
 export const profilesRepositoryLive = Layer.effect(
   ProfilesRepository,
   ProfilesGraphListAccess.pipe(
@@ -120,6 +132,11 @@ export const profilesRepositoryLive = Layer.effect(
         updates: ModelProfileUpdates
       ) =>
         updateProfile(profileId, updates).pipe(
+          Effect.provideService(ProfilesGraphListAccess, service)
+        ),
+
+      modelDeleteProfileByProfileId: (profileId: ModelProfileId) =>
+        deleteProfileByProfileId(profileId).pipe(
           Effect.provideService(ProfilesGraphListAccess, service)
         ),
     }))

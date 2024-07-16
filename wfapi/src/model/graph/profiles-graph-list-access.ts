@@ -26,5 +26,7 @@ export class ProfilesGraphListAccess extends Context.Tag(
     ) => (
       updates: ModelEncodedProfileUpdates
     ) => Effect.Effect<ModelEncodedPersistedProfile>;
+
+    readonly deleteProfileGraphListItem: (id: number) => Effect.Effect<unknown>;
   }
 >() {}

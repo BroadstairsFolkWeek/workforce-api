@@ -22,6 +22,7 @@ import { getFormsByUserId } from "../forms/forms";
 import { GetUserFormsResponse } from "./interfaces/forms";
 import { formsLayerLive } from "../contexts/forms-live";
 import { PostUsersResponse } from "./interfaces/users";
+import { deleteUser } from "../services/users";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
 
@@ -236,6 +237,33 @@ usersApi.get(
     const runnable = getFormsProgram.pipe(
       Effect.provide(repositoriesLayerLive),
       Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.delete(
+  "/:userId",
+  zValidator("param", userIdParamSchema),
+  async (c) => {
+    const { userId } = c.req.valid("param");
+
+    const program = deleteUser(ModelUserId.make(userId!))
+      .pipe(
+        Effect.tap(() => Effect.logInfo(`Deleted user: ${userId}`)),
+        Effect.andThen(c.json({}, 200))
+      )
+      .pipe(
+        Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
+        Effect.catchTag("ProfileNotFound", () =>
+          Effect.succeed(c.json({}, 404))
+        )
+      );
+
+    const runnable = program.pipe(
+      Effect.provide(repositoriesLayerLive),
       Effect.provide(logLevelLive)
     );
 

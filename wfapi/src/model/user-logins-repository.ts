@@ -19,5 +19,9 @@ export class UserLoginRepository extends Context.Tag("UserLoginRepository")<
     readonly modelCreateUserLogin: (
       addableUserLogin: ModelAddableUserLogin
     ) => Effect.Effect<ModelPersistedUserLogin>;
+
+    readonly modelDeleteUserByUserId: (
+      userId: ModelUserId
+    ) => Effect.Effect<ModelPersistedUserLogin, UserLoginNotFound>;
   }
 >() {}

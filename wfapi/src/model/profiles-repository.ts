@@ -27,5 +27,9 @@ export class ProfilesRepository extends Context.Tag("ProfilesRepository")<
       profileId: ModelProfileId,
       updates: ModelProfileUpdates
     ) => Effect.Effect<ModelPersistedProfile, ProfileNotFound>;
+
+    readonly modelDeleteProfileByProfileId: (
+      profileId: ModelProfileId
+    ) => Effect.Effect<ModelPersistedProfile, ProfileNotFound>;
   }
 >() {}

@@ -19,5 +19,9 @@ export class UserLoginsGraphListAccess extends Context.Tag(
     readonly createUserLoginGraphListItem: (
       fields: ModelEncodedAddableUserLogin
     ) => Effect.Effect<PersistedGraphListItem<ModelEncodedPersistedUserLogin>>;
+
+    readonly deleteUserLoginGraphListItem: (
+      id: number
+    ) => Effect.Effect<unknown>;
   }
 >() {}

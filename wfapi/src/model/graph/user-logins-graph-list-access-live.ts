@@ -3,6 +3,7 @@ import { GraphClient } from "../../graph/graph-client";
 import { UserLoginsGraphListAccess } from "./user-logins-graph-list-access";
 import {
   createGraphListItem,
+  deleteGraphListItem,
   getListItemsByFilter,
 } from "./common-graph-list-access";
 import {
@@ -29,6 +30,11 @@ export const userLoginsGraphListAccessLive = Layer.effect(
 
         createUserLoginGraphListItem: (fields: ModelEncodedAddableUserLogin) =>
           createGraphListItem(userLoginsListId)(fields).pipe(
+            Effect.provideService(GraphClient, graphClient)
+          ),
+
+        deleteUserLoginGraphListItem: (id: number) =>
+          deleteGraphListItem(userLoginsListId)(id).pipe(
             Effect.provideService(GraphClient, graphClient)
           ),
       })

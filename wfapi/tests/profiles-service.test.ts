@@ -57,12 +57,14 @@ const createMockProfilesRepository = (profile: ModelPersistedProfile) =>
         ...updates,
         profileId,
       }),
+    modelDeleteProfileByProfileId: () => Effect.die("Not implemented"),
   });
 
 const mockUserLoginssRepository = Layer.succeed(UserLoginRepository, {
   modelGetUserLoginByIdentityProviderUserId: (userId) =>
     Effect.succeed(testUserLogin),
   modelCreateUserLogin: () => Effect.die("Not implemented"),
+  modelDeleteUserByUserId: () => Effect.die("Not implemented"),
 });
 
 test("Profiles service adds single photo URL to Profile when multiple photo Ids exist for profile", () => {

@@ -6,6 +6,7 @@ import {
 } from "../model/interfaces/user-login";
 import { UserLoginRepository } from "../model/user-logins-repository";
 import { ModelProfileId } from "../model/interfaces/profile";
+import { deleteProfileByUserId } from "./profiles";
 
 export class UnknownUser {
   readonly _tag = "UnknownUser";
@@ -38,3 +39,13 @@ export const ensureUserLogin =
           )
       )
     );
+
+export const deleteUser = (userId: ModelUserId) =>
+  UserLoginRepository.pipe(
+    Effect.andThen((repo) => repo.modelDeleteUserByUserId(userId)),
+    Effect.catchTag("UserLoginNotFound", () => Effect.fail(new UnknownUser()))
+  ).pipe(
+    Effect.andThen((deletedUserLogin) =>
+      deleteProfileByUserId(deletedUserLogin.profileId)
+    )
+  );
