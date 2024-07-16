@@ -4,21 +4,17 @@ import { ModelProfileId } from "./profile";
 export const ModelUserId = S.String.pipe(S.brand("UserId"));
 export type ModelUserId = S.Schema.Type<typeof ModelUserId>;
 
-const ModelCoreUserLogin = S.Struct({
+export const ModelCoreUserLogin = S.Struct({
   displayName: S.propertySignature(S.String).pipe(S.fromKey("Title")),
   givenName: S.optional(S.String).pipe(S.fromKey("GivenName")),
   surname: S.optional(S.String).pipe(S.fromKey("Surname")),
   email: S.optional(S.String).pipe(S.fromKey("Email")),
-  identityProvider: S.propertySignature(S.String).pipe(
-    S.fromKey("IdentityProvider")
-  ),
   identityProviderUserId: S.propertySignature(ModelUserId).pipe(
     S.fromKey("IdentityProviderUserId")
   ),
-  identityProviderUserDetails: S.propertySignature(S.String).pipe(
-    S.fromKey("IdentityProviderUserDetails")
-  ),
 });
+export interface ModelCoreUserLogin
+  extends S.Schema.Type<typeof ModelCoreUserLogin> {}
 
 const ModelUserLoginMetadata = S.Struct({
   profileId: S.propertySignature(ModelProfileId).pipe(S.fromKey("ProfileId")),

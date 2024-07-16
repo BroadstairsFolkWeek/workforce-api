@@ -1,6 +1,11 @@
 import { Effect } from "effect";
-import { ModelUserId } from "../model/interfaces/user-login";
-import { getUserLogin } from "./users";
+import { v4 as uuidv4 } from "uuid";
+
+import {
+  ModelCoreUserLogin,
+  ModelUserId,
+} from "../model/interfaces/user-login";
+import { ensureUserLogin, getUserLogin } from "./users";
 import { ProfilesRepository } from "../model/profiles-repository";
 import {
   ModelPersistedProfile,
@@ -113,6 +118,36 @@ export const getProfiles = () =>
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfiles())
   ).pipe(Effect.andThen(Effect.forEach(decorateProfile)));
+
+export const ensureProfileByUserLoginDetails = (user: ModelCoreUserLogin) =>
+  ensureUserLogin(user)(ModelProfileId.make(uuidv4()))
+    .pipe(
+      Effect.tap((userLogin) =>
+        Effect.logTrace(
+          `Found login for user: ${user.identityProviderUserId}`,
+          userLogin
+        )
+      ),
+      Effect.andThen((userLogin) =>
+        ProfilesRepository.pipe(
+          Effect.andThen((repo) =>
+            repo.modelGetProfileByProfileId(userLogin.profileId).pipe(
+              Effect.catchTag("ProfileNotFound", () =>
+                repo.modelCreateProfile({
+                  profileId: userLogin.profileId,
+                  email: user.email,
+                  displayName: user.displayName,
+                  givenName: user.givenName,
+                  surname: user.surname,
+                  version: 1,
+                })
+              )
+            )
+          )
+        )
+      )
+    )
+    .pipe(Effect.andThen(decorateProfile));
 
 const updateProfileIfVersionMatches =
   (version: number, updates: ProfileUpdates) => (profile: ProfileWithPhoto) => {

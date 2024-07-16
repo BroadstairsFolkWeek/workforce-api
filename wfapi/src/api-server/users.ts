@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, identity } from "effect";
 import { Schema as S } from "@effect/schema";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import {
   UpdateProfileResponse,
 } from "./interfaces/profiles";
 import {
+  ensureProfileByUserLoginDetails,
   getProfileByUserId,
   setProfilePhoto,
   updateProfileByUserId,
@@ -20,8 +21,17 @@ import { logLevelLive } from "../util/logging";
 import { getFormsByUserId } from "../forms/forms";
 import { GetUserFormsResponse } from "./interfaces/forms";
 import { formsLayerLive } from "../contexts/forms-live";
+import { PostUsersResponse } from "./interfaces/users";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
+
+const postUsersBodySchema = z.object({
+  userId: z.string(),
+  displayName: z.string(),
+  givenName: z.string().optional(),
+  surname: z.string().optional(),
+  email: z.string().optional(),
+});
 
 const patchProfileBodySchema = z.object({
   version: z.number(),
@@ -66,6 +76,46 @@ usersApi.get(
     return await Effect.runPromise(runnable);
   }
 );
+
+usersApi.post("/", zValidator("json", postUsersBodySchema), async (c) => {
+  const requestBody = c.req.valid("json");
+
+  const addableUser = {
+    ...requestBody,
+    identityProviderUserId: ModelUserId.make(requestBody.userId),
+  };
+
+  const program = ensureProfileByUserLoginDetails(addableUser)
+    .pipe(
+      Effect.tap((profile) =>
+        Effect.logInfo(
+          `Created or retrieved profile for user: ${requestBody.userId}`,
+          profile
+        )
+      ),
+      Effect.andThen((profile) => ({ data: profile })),
+      Effect.andThen(S.encode(PostUsersResponse)),
+      Effect.tap((postUsersResponse) =>
+        Effect.logTrace(
+          "Reporting successful profile ensurance",
+          postUsersResponse
+        )
+      ),
+      Effect.andThen((body) => c.json(body, 200))
+    )
+    .pipe(
+      Effect.catchTags({
+        ParseError: () => Effect.succeed(c.json({}, 500)),
+      })
+    );
+
+  const runnable = program.pipe(
+    Effect.provide(repositoriesLayerLive),
+    Effect.provide(logLevelLive)
+  );
+
+  return await Effect.runPromise(runnable);
+});
 
 usersApi.patch(
   "/:userId/profile",

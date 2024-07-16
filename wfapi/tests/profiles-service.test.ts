@@ -23,8 +23,6 @@ const testUserLogin: ModelPersistedUserLogin = {
   identityProviderUserId: testUserId,
   profileId: testProfileId,
   displayName: "Test User",
-  identityProvider: "test",
-  identityProviderUserDetails: "",
   dbId: 1,
   createdDate: new Date(),
   modifiedDate: new Date(),

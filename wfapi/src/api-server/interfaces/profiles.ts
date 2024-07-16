@@ -6,7 +6,7 @@ const ApiProfileMeta = S.Struct({
   profileInformationRequried: S.Boolean,
 });
 
-const ApiProfile = S.Struct({
+export const ApiProfile = S.Struct({
   profileId: ModelProfileId,
   email: S.optional(S.String),
   displayName: S.String,
