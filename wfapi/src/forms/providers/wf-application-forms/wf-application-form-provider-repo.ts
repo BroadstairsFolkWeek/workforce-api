@@ -44,7 +44,7 @@ const ApplicationFormAnswers = S.Struct({
   daysAvailable: S.Array(DaysAvailableDay),
   ageGroup: S.optional(ModelAgeGroup),
   emergencyContactName: S.optional(S.String),
-  emergencyContactPhone: S.optional(S.String),
+  emergencyContactTelephone: S.optional(S.String),
   previousVolunteer: S.optional(S.Boolean),
   previousTeam: S.optional(S.String),
   teamPreference1: S.optional(S.String),
@@ -69,6 +69,8 @@ const ApplicationFormAnswers = S.Struct({
 interface ApplicationFormAnswers
   extends S.Schema.Type<typeof ApplicationFormAnswers> {}
 
+const asIsoDate = (date: string) => new Date(date).toISOString().split("T")[0];
+
 const modelApplicationToApplicationFormAnswers = (
   modelApplication: ModelPersistedApplication
 ): Effect.Effect<ApplicationFormAnswers, ParseError> => {
@@ -84,6 +86,9 @@ const modelApplicationToApplicationFormAnswers = (
       modelApplication.availableThursday ? "day7" : undefined,
       modelApplication.availableLastFriday ? "day8" : undefined,
     ]),
+    dbsDisclosureDate: modelApplication.dbsDisclosureDate
+      ? asIsoDate(modelApplication.dbsDisclosureDate)
+      : undefined,
   };
 
   return S.decode(ApplicationFormAnswers)(transformed);
