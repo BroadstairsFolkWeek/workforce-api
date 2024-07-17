@@ -3,7 +3,7 @@ import { ModelProfileId } from "../../model/interfaces/profile";
 
 const ApiProfileMeta = S.Struct({
   photoRequired: S.Boolean,
-  profileInformationRequried: S.Boolean,
+  profileInformationRequired: S.Boolean,
 });
 
 export const ApiProfile = S.Struct({

@@ -31,7 +31,7 @@ interface ProfileWithPhoto extends ModelPersistedProfile {
 interface ProfileWithPhotoAndMetadata extends ProfileWithPhoto {
   meta: {
     photoRequired: boolean;
-    profileInformationRequried: boolean;
+    profileInformationRequired: boolean;
   };
 }
 
@@ -83,7 +83,7 @@ const addMetadataToProfile = (
     ...profile,
     meta: {
       photoRequired: !profile.photoUrl,
-      profileInformationRequried: profileInformationMissing(profile),
+      profileInformationRequired: profileInformationMissing(profile),
     },
   };
 };
