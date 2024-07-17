@@ -61,32 +61,7 @@ export const applicationFormQuestionsModel = {
           name: "ageGroup",
           title: "Which age group are you in?",
           isRequired: true,
-          choices: [
-            {
-              value: "Item 1",
-              text: "18-20",
-            },
-            {
-              value: "Item 2",
-              text: "21-25",
-            },
-            {
-              value: "Item 3",
-              text: "26-35",
-            },
-            {
-              value: "Item 4",
-              text: "36-55",
-            },
-            {
-              value: "Item 5",
-              text: "56-65",
-            },
-            {
-              value: "Item 6",
-              text: "66+",
-            },
-          ],
+          choices: ["18-20", "21-25", "26-35", "36-55", "56-65", "66+"],
         },
         {
           type: "panel",
