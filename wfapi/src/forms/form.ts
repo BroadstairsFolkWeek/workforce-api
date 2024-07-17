@@ -55,7 +55,8 @@ export type FormSubmissionArchiveStatus = S.Schema.Type<
 export const FormSubmissionAvailableActions = S.Literal(
   "save",
   "submit",
-  "retract"
+  "retract",
+  "delete"
 );
 export type FormSubmissionAvailableActions = S.Schema.Type<
   typeof FormSubmissionAvailableActions

@@ -14,6 +14,7 @@ export const addAvailableActions = (
     formSubmission.submissionStatus === "submittable"
   ) {
     actions.push("save");
+    actions.push("delete");
   }
 
   if (formSubmission.submissionStatus === "submittable") {
