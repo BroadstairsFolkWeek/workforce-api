@@ -91,8 +91,6 @@ export const applicationFormQuestionsModel = {
               name: "previousVolunteer",
               title: "Have you previously volunteered with BFW?",
               defaultValue: "No",
-              valueTrue: "Yes",
-              valueFalse: "No",
             },
             {
               type: "text",
@@ -149,14 +147,9 @@ export const applicationFormQuestionsModel = {
                 "{teamPreference1} != {item} && {teamPreference2} != {item}",
             },
             {
-              type: "paneldynamic",
+              type: "panel",
               name: "dbs-disclosure",
-              visibleIf:
-                "{teamPreference1} = 'Children\\'s Events' or {teamPreference2} = 'Children\\'s Events' or {teamPreference3} = 'Children\\'s Events'",
-              title: "DBS disclosure",
-              description:
-                "DBS disclosure information is required when applying to join the Children's Team",
-              templateElements: [
+              elements: [
                 {
                   type: "text",
                   name: "dbsDisclosureNumber",
@@ -171,9 +164,11 @@ export const applicationFormQuestionsModel = {
                   inputType: "date",
                 },
               ],
-              panelCount: 1,
-              minPanelCount: 1,
-              maxPanelCount: 1,
+              visibleIf:
+                "{teamPreference1} = 'Children\\'s Events' or {teamPreference2} = 'Children\\'s Events' or {teamPreference3} = 'Children\\'s Events'",
+              title: "DBS disclosure",
+              description:
+                "DBS disclosure information is required when applying to join the Children's Team",
             },
           ],
           description:
@@ -181,7 +176,7 @@ export const applicationFormQuestionsModel = {
         },
         {
           type: "comment",
-          name: "contraints",
+          name: "constraints",
           title:
             "Please let us know if you would be unable to perform certain aspects of a role or if you would need extra support.",
           maxLength: 1000,
