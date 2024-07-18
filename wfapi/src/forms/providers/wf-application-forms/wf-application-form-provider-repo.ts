@@ -6,12 +6,14 @@
  * than as generic data files. Further, the schema of the WF Application form's questions is hard-coded, rather than read from a data source.
  */
 
-import { Array, Effect, Layer } from "effect";
+import { Array, Context, Effect, Layer, pipe } from "effect";
 import { ModelProfileId } from "../../../model/interfaces/profile";
 import { ApplicationsRepository } from "../../../model/applications-repository";
 import { Schema as S } from "@effect/schema";
 import {
   ModelAgeGroup,
+  ModelApplicationChanges,
+  ModelApplicationStatus,
   ModelPersistedApplication,
   ModelTShirtSize,
 } from "../../../model/interfaces/application";
@@ -22,11 +24,15 @@ import {
   workforceApplicationFormSpecId,
 } from "./wf-application-form-spec";
 import {
+  FormProviderId,
+  FormProviderSubmissionId,
   FormSpecId,
   FormSubmissionId,
   UnverifiedFormSubmission,
+  VerifiedFormSubmissionStatus,
 } from "../../form";
 import { WfApplicationFormProvider } from "./wf-application-form-provider";
+import { FormSubmissionNotFound } from "../../forms";
 
 const DaysAvailableDay = S.Literal(
   "day1",
@@ -64,6 +70,7 @@ const ApplicationFormAnswers = S.Struct({
   newlifeHaveWillInPlace: S.optional(S.Boolean),
   newlifeHavePoaInPlace: S.optional(S.Boolean),
   newlifeWantFreeReview: S.optional(S.Boolean),
+  version: S.Number,
 });
 
 interface ApplicationFormAnswers
@@ -94,6 +101,66 @@ const modelApplicationToApplicationFormAnswers = (
   return S.decode(ApplicationFormAnswers)(transformed);
 };
 
+const determineApplicationStatus = (
+  status: VerifiedFormSubmissionStatus
+): ModelApplicationStatus => {
+  switch (status) {
+    case "draft":
+      return "info-required";
+    case "submittable":
+      return "ready-to-submit";
+    case "submitted":
+      return "submitted";
+    case "accepted":
+      return "complete";
+    default:
+      return "info-required";
+  }
+};
+
+const applicationAnswersToModelApplicationChanges =
+  (status: VerifiedFormSubmissionStatus) =>
+  (applicationAnswers: ApplicationFormAnswers): ModelApplicationChanges => {
+    return {
+      ...applicationAnswers,
+      availableFirstFriday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day1"
+      ),
+      availableSaturday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day2"
+      ),
+      availableSunday: Array.contains(applicationAnswers.daysAvailable, "day3"),
+      availableMonday: Array.contains(applicationAnswers.daysAvailable, "day4"),
+      availableTuesday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day5"
+      ),
+      availableWednesday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day6"
+      ),
+      availableThursday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day7"
+      ),
+      availableLastFriday: Array.contains(
+        applicationAnswers.daysAvailable,
+        "day8"
+      ),
+      status: determineApplicationStatus(status),
+    };
+  };
+
+const updatedAnswersToModelApplicationChanges = (
+  updatedAnswers: unknown,
+  status: VerifiedFormSubmissionStatus
+) =>
+  S.decodeUnknown(ApplicationFormAnswers)(updatedAnswers)
+    .pipe(Effect.andThen(applicationAnswersToModelApplicationChanges(status)))
+    .pipe(Effect.catchTag("ParseError", (e) => Effect.die(e)));
+
 const getFormAnswersFromApplication = (
   application: ModelPersistedApplication
 ): Effect.Effect<ApplicationFormAnswers> =>
@@ -122,6 +189,12 @@ const getFormSubmissionForApplication =
     application: ModelPersistedApplication
   ): Effect.Effect<UnverifiedFormSubmission> =>
     Effect.all({
+      formProviderId: Effect.succeed(
+        FormProviderId.make("wf-application-form-provider")
+      ),
+      formProviderSubmissionId: Effect.succeed(
+        FormProviderSubmissionId.make(application.applicationId)
+      ),
       id: Effect.succeed(FormSubmissionId.make(application.applicationId)),
       formSpecId: Effect.succeed(workforceApplicationFormSpecId),
       profileId: Effect.succeed(profileId),
@@ -132,58 +205,83 @@ const getFormSubmissionForApplication =
       archiveStatus: Effect.succeed("active" as const),
     });
 
-const getApplicationFormForProfileId = (profileId: ModelProfileId) =>
-  ApplicationsRepository.pipe(
-    Effect.andThen((applicationsRepo) =>
-      applicationsRepo
-        .modelGetApplicationByProfileId(profileId)
-        .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)))
-    )
-  );
+const getApplicationFormForProfileId =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (profileId: ModelProfileId) =>
+    applicationsRepo
+      .modelGetApplicationByProfileId(profileId)
+      .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)));
 
-const getActiveFormSubmissions = (
-  profileId: ModelProfileId
-): Effect.Effect<
-  readonly UnverifiedFormSubmission[],
-  never,
-  ApplicationsRepository
-> =>
-  getApplicationFormForProfileId(profileId).pipe(
-    Effect.map((form) => [form]),
-    Effect.andThen(Array.filter((form) => form.archiveStatus == "active")),
-    Effect.catchTag("ApplicationNotFound", () =>
-      Effect.succeed([] as readonly UnverifiedFormSubmission[])
-    )
-  );
+const getActiveFormSubmissions =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (profileId: ModelProfileId) =>
+    getApplicationFormForProfileId(applicationsRepo)(profileId).pipe(
+      Effect.map((form) => [form]),
+      Effect.andThen(Array.filter((form) => form.archiveStatus == "active")),
+      Effect.catchTag("ApplicationNotFound", () =>
+        Effect.succeed([] as readonly UnverifiedFormSubmission[])
+      )
+    );
 
 const getFormSpec = (formSpecId: FormSpecId) =>
   formSpecId === workforceApplicationFormSpecId
     ? Effect.succeed(workforceApplicationFormSpec)
-    : Effect.fail(new FormSpecNotFound(formSpecId));
+    : Effect.fail(new FormSpecNotFound({ formSpecId }));
 
-const getCreatableFormSpecs = (profileId: ModelProfileId) =>
-  getApplicationFormForProfileId(profileId).pipe(
-    Effect.andThen(() => []),
-    Effect.catchTag("ApplicationNotFound", () =>
-      Effect.succeed([workforceApplicationFormSpec])
-    )
-  );
+const getCreatableFormSpecs =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (profileId: ModelProfileId) =>
+    getApplicationFormForProfileId(applicationsRepo)(profileId).pipe(
+      Effect.andThen(() => []),
+      Effect.catchTag("ApplicationNotFound", () =>
+        Effect.succeed([workforceApplicationFormSpec])
+      )
+    );
 
-export const wfApplicationsFormProviderLive = Layer.effect(
+const updateFormSubmissionByFormProviderSubmissionId =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (
+    formProviderId: FormProviderId,
+    formProviderSubmissionId: FormProviderSubmissionId
+  ) =>
+  (profileId: ModelProfileId) =>
+  (formSubmissionStatus: VerifiedFormSubmissionStatus, answers: unknown) => {
+    return S.decodeUnknown(ApplicationFormAnswers)(answers)
+      .pipe(
+        Effect.andThen((applicationAnswers) =>
+          pipe(
+            applicationAnswersToModelApplicationChanges(formSubmissionStatus)(
+              applicationAnswers
+            ),
+            applicationsRepo.modelSaveApplicationChanges(
+              formProviderSubmissionId
+            )(applicationAnswers.version)
+          )
+        )
+      )
+      .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)))
+      .pipe(
+        Effect.catchTags({
+          ParseError: (e) => Effect.die(e),
+          ApplicationNotFound: () => Effect.fail(new FormSubmissionNotFound()),
+          RepositoryConflictError: () => Effect.die("RepositoryConflictError"),
+        })
+      );
+  };
+
+export const wfApplicationFormProviderLive = Layer.effect(
   WfApplicationFormProvider,
-  ApplicationsRepository.pipe(
-    Effect.andThen((applicationsRepo) =>
-      Effect.succeed({
-        getActiveFormSubmissions: (profileId: ModelProfileId) =>
-          getActiveFormSubmissions(profileId).pipe(
-            Effect.provideService(ApplicationsRepository, applicationsRepo)
-          ),
-
+  Effect.all([ApplicationsRepository]).pipe(
+    Effect.andThen(([applicationsRepository]) =>
+      WfApplicationFormProvider.of({
+        getActiveFormSubmissions: getActiveFormSubmissions(
+          applicationsRepository
+        ),
         getFormSpec,
-
-        getCreatableFormSpecs: (profileId: ModelProfileId) =>
-          getCreatableFormSpecs(profileId).pipe(
-            Effect.provideService(ApplicationsRepository, applicationsRepo)
+        getCreatableFormSpecs: getCreatableFormSpecs(applicationsRepository),
+        updateFormSubmissionByFormProviderSubmissionId:
+          updateFormSubmissionByFormProviderSubmissionId(
+            applicationsRepository
           ),
       })
     )

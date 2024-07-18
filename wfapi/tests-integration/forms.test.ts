@@ -1,15 +1,15 @@
 import { Config, Effect } from "effect";
 import { ModelProfileId } from "../src/model/interfaces/profile";
-import { FormsAccess } from "../src/forms/access/forms-access";
 import { formsLayerLive } from "../src/contexts/forms-live";
+import { FormProvider } from "../src/forms/providers/form-provider";
 
 test("BRITTLE: get active forms by profileid returns the existing Workforce Application form", async () => {
   const program = Effect.all([
-    FormsAccess,
+    FormProvider,
     Config.string("TEST_PROFILE_ID"),
   ]).pipe(
-    Effect.andThen(([formsAccess, profileId]) =>
-      formsAccess.getActiveFormSubmissions(ModelProfileId.make(profileId))
+    Effect.andThen(([formProvider, profileId]) =>
+      formProvider.getActiveFormSubmissions(ModelProfileId.make(profileId))
     )
   );
 
@@ -24,11 +24,11 @@ test("BRITTLE: get active forms by profileid returns the existing Workforce Appl
 
 test("BRITTILE: get creatable form specs by profileid return 0 forms since Workforce Application form already exists", async () => {
   const program = Effect.all([
-    FormsAccess,
+    FormProvider,
     Config.string("TEST_PROFILE_ID"),
   ]).pipe(
-    Effect.andThen(([formsAccess, profileId]) =>
-      formsAccess.getCreatableFormSpecs(ModelProfileId.make(profileId))
+    Effect.andThen(([formProvider, profileId]) =>
+      formProvider.getCreatableFormSpecs(ModelProfileId.make(profileId))
     )
   );
 
@@ -40,9 +40,11 @@ test("BRITTILE: get creatable form specs by profileid return 0 forms since Workf
 });
 
 test("BRITTLE: get creatable form specs by new profile ID return the Workforce Application form spec", async () => {
-  const program = Effect.all([FormsAccess]).pipe(
-    Effect.andThen(([formsAccess]) =>
-      formsAccess.getCreatableFormSpecs(ModelProfileId.make("UnknownProfileId"))
+  const program = Effect.all([FormProvider]).pipe(
+    Effect.andThen(([formProvider]) =>
+      formProvider.getCreatableFormSpecs(
+        ModelProfileId.make("UnknownProfileId")
+      )
     )
   );
 

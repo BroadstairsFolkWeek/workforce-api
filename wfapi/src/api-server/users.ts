@@ -1,4 +1,4 @@
-import { Effect, identity } from "effect";
+import { Effect } from "effect";
 import { Schema as S } from "@effect/schema";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -18,13 +18,24 @@ import {
 import { ModelUserId } from "../model/interfaces/user-login";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
 import { logLevelLive } from "../util/logging";
-import { getFormsByUserId } from "../forms/forms";
-import { GetUserFormsResponse } from "./interfaces/forms";
+import {
+  getFormsByUserId,
+  updateFormSubmissionForUserId,
+} from "../forms/forms";
+import {
+  GetUserFormsResponse,
+  UpdateUserFormResponse,
+} from "./interfaces/forms";
 import { formsLayerLive } from "../contexts/forms-live";
 import { PostUsersResponse } from "./interfaces/users";
 import { deleteUser } from "../services/users";
+import { FormSubmissionId } from "../forms/form";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
+const putFormParamSchema = z.object({
+  userId: z.string().brand("UserId"),
+  formSubmissionId: z.string().brand("FormSubmissionId"),
+});
 
 const postUsersBodySchema = z.object({
   userId: z.string(),
@@ -228,10 +239,49 @@ usersApi.get(
         Effect.catchTag("ProfileNotFound", () =>
           Effect.succeed(c.json({}, 404))
         ),
-        Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500))),
-        Effect.catchTag("FormSpecNotFound", () =>
-          Effect.succeed(c.json({}, 500))
-        )
+        Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500)))
+      );
+
+    const runnable = getFormsProgram.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.put(
+  "/:userId/profile/forms/:formSubmissionId",
+  zValidator("param", putFormParamSchema),
+  async (c) => {
+    const { userId, formSubmissionId } = c.req.valid("param");
+    const answers = await c.req.json();
+
+    const getFormsProgram = updateFormSubmissionForUserId(
+      FormSubmissionId.make(formSubmissionId)
+    )(answers)(ModelUserId.make(userId))
+      .pipe(
+        Effect.andThen((formSubmission) => ({ data: formSubmission })),
+        Effect.andThen(S.encode(UpdateUserFormResponse)),
+        Effect.andThen((body) => c.json(body, 200))
+      )
+      .pipe(
+        Effect.catchTags({
+          UnknownUser: () => Effect.succeed(c.json({}, 404)),
+          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
+          FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
+          ParseError: () => Effect.succeed(c.json({}, 500)),
+        })
+        // Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
+        // Effect.catchTag("ProfileNotFound", () =>
+        //   Effect.succeed(c.json({}, 404))
+        // ),
+        // Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500))),
+        // Effect.catchTag("FormSpecNotFound", () =>
+        //   Effect.succeed(c.json({}, 500))
+        // )
       );
 
     const runnable = getFormsProgram.pipe(

@@ -28,7 +28,7 @@ interface ProfileWithPhoto extends ModelPersistedProfile {
   photoThumbnailUrl?: string;
 }
 
-interface ProfileWithPhotoAndMetadata extends ProfileWithPhoto {
+export interface ProfileWithPhotoAndMetadata extends ProfileWithPhoto {
   meta: {
     photoRequired: boolean;
     profileInformationRequired: boolean;

@@ -1,6 +1,9 @@
 import { Schema as S } from "@effect/schema";
 import { ModelProfileId } from "../model/interfaces/profile";
 
+export const FormProviderId = S.String.pipe(S.brand("FormProviderId"));
+export type FormProviderId = S.Schema.Type<typeof FormProviderId>;
+
 const FormSpecRequirements = S.Struct({
   profileRequirements: S.Struct({
     firstName: S.optional(S.Boolean),
@@ -16,7 +19,12 @@ const FormSpecRequirements = S.Struct({
 export const FormSpecId = S.String.pipe(S.brand("FormSpecId"));
 export type FormSpecId = S.Schema.Type<typeof FormSpecId>;
 
+export const FormProviderSpecId = S.String.pipe(S.brand("FormProviderSpecId"));
+export type FormProviderSpecId = S.Schema.Type<typeof FormProviderSubmissionId>;
+
 export const FormSpec = S.Struct({
+  formProviderId: FormProviderId,
+  formProviderSpecId: FormProviderSpecId,
   id: FormSpecId,
   shortName: S.String,
   fullName: S.String,
@@ -26,6 +34,13 @@ export const FormSpec = S.Struct({
   status: S.Literal("draft", "active", "archived"),
 });
 export interface FormSpec extends S.Schema.Type<typeof FormSpec> {}
+
+export const FormProviderSubmissionId = S.String.pipe(
+  S.brand("FormProviderSubmissionId")
+);
+export type FormProviderSubmissionId = S.Schema.Type<
+  typeof FormProviderSubmissionId
+>;
 
 export const FormSubmissionId = S.String.pipe(S.brand("FormSubmissionId"));
 export type FormSubmissionId = S.Schema.Type<typeof FormSubmissionId>;
@@ -63,6 +78,8 @@ export type FormSubmissionAvailableActions = S.Schema.Type<
 >;
 
 export const UnverifiedFormSubmission = S.Struct({
+  formProviderId: FormProviderId,
+  formProviderSubmissionId: FormProviderSubmissionId,
   id: FormSubmissionId,
   formSpecId: FormSpecId,
   profileId: ModelProfileId,

@@ -1,4 +1,9 @@
-import { FormSpec, FormSpecId } from "../../form";
+import {
+  FormProviderId,
+  FormProviderSpecId,
+  FormSpec,
+  FormSpecId,
+} from "../../form";
 
 // Hardcoded survey specification representing the Workforce Application Form for 2024.
 export const applicationFormQuestionsModel = {
@@ -292,11 +297,17 @@ export const applicationFormQuestionsModel = {
   completeText: "Save",
 };
 
+const workforceApplicationFormProviderSpecId = FormProviderSpecId.make(
+  "WorkforceApplicationForm"
+);
+
 export const workforceApplicationFormSpecId = FormSpecId.make(
   "WorkforceApplicationForm"
 );
 
 export const workforceApplicationFormSpec: FormSpec = {
+  formProviderId: FormProviderId.make("wf-application-form-provider"),
+  formProviderSpecId: workforceApplicationFormProviderSpecId,
   id: workforceApplicationFormSpecId,
   shortName: "WF 2024",
   fullName: "Workforce Application Form 2024",

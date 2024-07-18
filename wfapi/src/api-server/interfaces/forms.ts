@@ -6,3 +6,7 @@ const ApiForm = FormSubmissionWithSpecAndActions;
 export const GetUserFormsResponse = S.Struct({
   data: S.Array(ApiForm),
 });
+
+export const UpdateUserFormResponse = S.Struct({
+  data: ApiForm,
+});

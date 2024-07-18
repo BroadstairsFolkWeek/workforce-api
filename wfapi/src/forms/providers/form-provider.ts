@@ -1,20 +1,43 @@
-import { Effect } from "effect";
+import { Context, Data, Effect } from "effect";
 import { ModelProfileId } from "../../model/interfaces/profile";
-import { FormSpec, FormSpecId, UnverifiedFormSubmission } from "../form";
+import {
+  FormProviderId,
+  FormProviderSubmissionId,
+  FormSpec,
+  FormSpecId,
+  UnverifiedFormSubmission,
+  VerifiedFormSubmissionStatus,
+} from "../form";
+import { FormSubmissionNotFound } from "../forms";
 
-export class FormSpecNotFound {
-  readonly _tag = "FormSpecNotFound";
-  constructor(readonly formSpecId: FormSpecId) {}
-}
+export class FormSpecNotFound extends Data.TaggedClass("FormSpecNotFound")<{
+  readonly formSpecId: FormSpecId;
+}> {}
 
-export interface FormProvider {
-  getCreatableFormSpecs: (
-    profileId: ModelProfileId
-  ) => Effect.Effect<readonly FormSpec[]>;
-  getFormSpec: (
-    formSpecId: FormSpecId
-  ) => Effect.Effect<FormSpec, FormSpecNotFound>;
-  getActiveFormSubmissions: (
-    profileId: ModelProfileId
-  ) => Effect.Effect<readonly UnverifiedFormSubmission[], never, never>;
-}
+export class FormProviderNotMatched extends Data.TaggedClass(
+  "FormProviderNotMatched"
+) {}
+
+export class FormProvider extends Context.Tag("FormProvider")<
+  FormProvider,
+  {
+    getCreatableFormSpecs: (
+      profileId: ModelProfileId
+    ) => Effect.Effect<readonly FormSpec[]>;
+    getFormSpec: (
+      formSpecId: FormSpecId
+    ) => Effect.Effect<FormSpec, FormSpecNotFound>;
+    getActiveFormSubmissions: (
+      profileId: ModelProfileId
+    ) => Effect.Effect<readonly UnverifiedFormSubmission[], never, never>;
+    updateFormSubmissionByFormProviderSubmissionId: (
+      formProviderId: FormProviderId,
+      formProviderSubmissionId: FormProviderSubmissionId
+    ) => (
+      profileId: ModelProfileId
+    ) => (
+      formSubmissionStatus: VerifiedFormSubmissionStatus,
+      answers: unknown
+    ) => Effect.Effect<UnverifiedFormSubmission, FormSubmissionNotFound, never>;
+  }
+>() {}
