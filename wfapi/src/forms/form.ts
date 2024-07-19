@@ -86,6 +86,8 @@ export const UnverifiedFormSubmission = S.Struct({
   answers: S.Unknown,
   submissionStatus: UnverifiedFormSubmissionStatus,
   archiveStatus: FormSubmissionArchiveStatus,
+  createdDateTimeUtc: S.DateFromString,
+  modifiedDateTimeUtc: S.DateFromString,
 });
 export interface UnverifiedFormSubmission
   extends S.Schema.Type<typeof UnverifiedFormSubmission> {}
