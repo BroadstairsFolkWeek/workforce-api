@@ -203,6 +203,8 @@ const getFormSubmissionForApplication =
         getSubmissionStatusFromApplication(application)
       ),
       archiveStatus: Effect.succeed("active" as const),
+      createdDateTimeUtc: Effect.succeed(application.createdDate),
+      modifiedDateTimeUtc: Effect.succeed(new Date(application.lastSaved)),
     });
 
 const getApplicationFormForProfileId =
