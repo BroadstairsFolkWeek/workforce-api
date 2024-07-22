@@ -271,6 +271,39 @@ const updateFormSubmissionByFormProviderSubmissionId =
       );
   };
 
+const updateFormSubmissionStatusByFormProviderSubmissionId =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (
+    formProviderId: FormProviderId,
+    formProviderSubmissionId: FormProviderSubmissionId
+  ) =>
+  (profileId: ModelProfileId) =>
+  (formSubmissionStatus: VerifiedFormSubmissionStatus) =>
+    applicationsRepo
+      .modelSaveApplicationStatus(formProviderSubmissionId)(
+        determineApplicationStatus(formSubmissionStatus)
+      )
+      .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)))
+      .pipe(
+        Effect.catchTags({
+          ApplicationNotFound: () => Effect.fail(new FormSubmissionNotFound()),
+        })
+      );
+
+const deleteFormSubmissionByFormProviderSubmissionId =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (
+    formProviderId: FormProviderId,
+    formProviderSubmissionId: FormProviderSubmissionId
+  ) =>
+    applicationsRepo
+      .modelDeleteApplicationByApplicationId(formProviderSubmissionId)
+      .pipe(
+        Effect.catchTags({
+          ApplicationNotFound: () => Effect.fail(new FormSubmissionNotFound()),
+        })
+      );
+
 export const wfApplicationFormProviderLive = Layer.effect(
   WfApplicationFormProvider,
   Effect.all([ApplicationsRepository]).pipe(
@@ -283,6 +316,15 @@ export const wfApplicationFormProviderLive = Layer.effect(
         getCreatableFormSpecs: getCreatableFormSpecs(applicationsRepository),
         updateFormSubmissionByFormProviderSubmissionId:
           updateFormSubmissionByFormProviderSubmissionId(
+            applicationsRepository
+          ),
+        updateFormSubmissionStatusByFormProviderSubmissionId:
+          updateFormSubmissionStatusByFormProviderSubmissionId(
+            applicationsRepository
+          ),
+
+        deleteFormSubmissionByFormProviderSubmissionId:
+          deleteFormSubmissionByFormProviderSubmissionId(
             applicationsRepository
           ),
       })

@@ -67,14 +67,20 @@ export type FormSubmissionArchiveStatus = S.Schema.Type<
   typeof FormSubmissionArchiveStatus
 >;
 
-export const FormSubmissionAvailableActions = S.Literal(
-  "save",
-  "submit",
-  "retract",
-  "delete"
+export const FormSubmissionAction = S.Literal("submit", "retract");
+export type FormSubmissionAction = S.Schema.Type<typeof FormSubmissionAction>;
+
+export const FormAnswersModifiableStatus = S.Literal("modifiable", "locked");
+export type FormAnswersModifiableStatus = S.Schema.Type<
+  typeof FormAnswersModifiableStatus
+>;
+
+export const FormSubmissionDeleteableStatus = S.Literal(
+  "deletable",
+  "not-deletable"
 );
-export type FormSubmissionAvailableActions = S.Schema.Type<
-  typeof FormSubmissionAvailableActions
+export type FormSubmissionDeleteableStatus = S.Schema.Type<
+  typeof FormSubmissionDeleteableStatus
 >;
 
 export const UnverifiedFormSubmission = S.Struct({
@@ -102,6 +108,8 @@ export interface UnverifiedFormSubmissionWithSpec
 export const FormSubmission = S.Struct({
   ...UnverifiedFormSubmissionWithSpec.fields,
   submissionStatus: VerifiedFormSubmissionStatus,
+  answersModifiable: FormAnswersModifiableStatus,
+  submissionDeletable: FormSubmissionDeleteableStatus,
 });
 export interface FormSubmission extends S.Schema.Type<typeof FormSubmission> {}
 
@@ -114,9 +122,7 @@ export interface FormSubmissionWithSpec
   extends S.Schema.Type<typeof FormSubmissionWithSpec> {}
 
 export const FormSubmissionWithSpecAndActions = FormSubmissionWithSpec.pipe(
-  S.extend(
-    S.Struct({ availableActions: S.Array(FormSubmissionAvailableActions) })
-  )
+  S.extend(S.Struct({ availableActions: S.Array(FormSubmissionAction) }))
 );
 export interface FormSubmissionWithSpecAndActions
   extends S.Schema.Type<typeof FormSubmissionWithSpecAndActions> {}

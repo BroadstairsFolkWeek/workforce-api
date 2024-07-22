@@ -24,12 +24,15 @@ export class FormProvider extends Context.Tag("FormProvider")<
     getCreatableFormSpecs: (
       profileId: ModelProfileId
     ) => Effect.Effect<readonly FormSpec[]>;
+
     getFormSpec: (
       formSpecId: FormSpecId
     ) => Effect.Effect<FormSpec, FormSpecNotFound>;
+
     getActiveFormSubmissions: (
       profileId: ModelProfileId
     ) => Effect.Effect<readonly UnverifiedFormSubmission[], never, never>;
+
     updateFormSubmissionByFormProviderSubmissionId: (
       formProviderId: FormProviderId,
       formProviderSubmissionId: FormProviderSubmissionId
@@ -39,5 +42,19 @@ export class FormProvider extends Context.Tag("FormProvider")<
       formSubmissionStatus: VerifiedFormSubmissionStatus,
       answers: unknown
     ) => Effect.Effect<UnverifiedFormSubmission, FormSubmissionNotFound, never>;
+
+    updateFormSubmissionStatusByFormProviderSubmissionId: (
+      formProviderId: FormProviderId,
+      formProviderSubmissionId: FormProviderSubmissionId
+    ) => (
+      profileId: ModelProfileId
+    ) => (
+      formSubmissionStatus: VerifiedFormSubmissionStatus
+    ) => Effect.Effect<UnverifiedFormSubmission, FormSubmissionNotFound, never>;
+
+    deleteFormSubmissionByFormProviderSubmissionId: (
+      formProviderId: FormProviderId,
+      formProviderSubmissionId: FormProviderSubmissionId
+    ) => Effect.Effect<unknown, FormSubmissionNotFound, never>;
   }
 >() {}

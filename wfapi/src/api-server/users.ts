@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Match } from "effect";
 import { Schema as S } from "@effect/schema";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -19,23 +19,34 @@ import { ModelUserId } from "../model/interfaces/user-login";
 import { repositoriesLayerLive } from "../contexts/repositories-live";
 import { logLevelLive } from "../util/logging";
 import {
+  ActionFormResult,
+  deleteFormSubmissionForUserId,
+  executeFormSubmissionActionForUserId,
   getFormsByUserId,
   updateFormSubmissionForUserId,
 } from "../forms/forms";
 import {
+  ActionFormResponse,
   GetUserFormsResponse,
   UpdateUserFormResponse,
 } from "./interfaces/forms";
 import { formsLayerLive } from "../contexts/forms-live";
 import { PostUsersResponse } from "./interfaces/users";
 import { deleteUser } from "../services/users";
-import { FormSubmissionId } from "../forms/form";
+import {
+  FormSubmissionAction,
+  FormSubmissionId,
+  VerifiedFormSubmissionStatus,
+} from "../forms/form";
+import { ApiInvalidRequest } from "./interfaces/api";
 
 const userIdParamSchema = z.object({ userId: z.string().brand("UserId") });
-const putFormParamSchema = z.object({
+const putFormParamsSchema = z.object({
   userId: z.string().brand("UserId"),
   formSubmissionId: z.string().brand("FormSubmissionId"),
 });
+const postFormParamsSchema = putFormParamsSchema;
+const deleteFormParamsSchema = putFormParamsSchema;
 
 const postUsersBodySchema = z.object({
   userId: z.string(),
@@ -254,7 +265,7 @@ usersApi.get(
 
 usersApi.put(
   "/:userId/profile/forms/:formSubmissionId",
-  zValidator("param", putFormParamSchema),
+  zValidator("param", putFormParamsSchema),
   async (c) => {
     const { userId, formSubmissionId } = c.req.valid("param");
     const answers = await c.req.json();
@@ -274,17 +285,116 @@ usersApi.put(
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
           ParseError: () => Effect.succeed(c.json({}, 500)),
         })
-        // Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
-        // Effect.catchTag("ProfileNotFound", () =>
-        //   Effect.succeed(c.json({}, 404))
-        // ),
-        // Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500))),
-        // Effect.catchTag("FormSpecNotFound", () =>
-        //   Effect.succeed(c.json({}, 500))
-        // )
       );
 
     const runnable = getFormsProgram.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.delete(
+  "/:userId/profile/forms/:formSubmissionId",
+  zValidator("param", deleteFormParamsSchema),
+  async (c) => {
+    const userIdEffect = S.decodeUnknown(ModelUserId)(
+      c.req.valid("param").userId
+    );
+
+    const formSubmissionIdEffect = S.decodeUnknown(FormSubmissionId)(
+      c.req.valid("param").formSubmissionId
+    );
+
+    const program = Effect.all([userIdEffect, formSubmissionIdEffect])
+      .pipe(
+        Effect.catchTag("ParseError", () =>
+          Effect.fail(new ApiInvalidRequest())
+        ),
+        Effect.andThen(([userId, formSubmissionId]) =>
+          deleteFormSubmissionForUserId(formSubmissionId)(userId)
+        ),
+        Effect.andThen(Effect.succeed(c.json({}, 204)))
+      )
+      .pipe(
+        Effect.catchTags({
+          UnknownUser: () => Effect.succeed(c.json({}, 404)),
+          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
+          FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
+          ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
+        })
+      );
+
+    const runnable = program.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.post(
+  "/:userId/profile/forms/:formSubmissionId/action",
+  zValidator("param", postFormParamsSchema),
+  async (c) => {
+    const userIdEffect = S.decodeUnknown(ModelUserId)(
+      c.req.valid("param").userId
+    );
+
+    const formSubmissionIdEffect = S.decodeUnknown(FormSubmissionId)(
+      c.req.valid("param").formSubmissionId
+    );
+
+    const actionEffect = Effect.tryPromise({
+      try: () => c.req.json(),
+      catch: () => new ApiInvalidRequest(),
+    }).pipe(
+      Effect.andThen(S.decodeUnknown(FormSubmissionAction)),
+      Effect.catchTag("ParseError", () => Effect.fail(new ApiInvalidRequest()))
+    );
+
+    const program = Effect.all([
+      userIdEffect,
+      formSubmissionIdEffect,
+      actionEffect,
+    ])
+      .pipe(
+        Effect.catchTag("ParseError", () =>
+          Effect.fail(new ApiInvalidRequest())
+        ),
+        Effect.andThen(([userId, formSubmissionId, action]) =>
+          executeFormSubmissionActionForUserId(formSubmissionId)(userId)(action)
+        ),
+        Effect.andThen(
+          Match.type<ActionFormResult>().pipe(
+            Match.tag("ActionResultStatusUpdated", (result) =>
+              Effect.succeed(result.formSubmission).pipe(
+                Effect.andThen((formSubmission) => ({ data: formSubmission })),
+                Effect.andThen(S.encode(ActionFormResponse)),
+                Effect.andThen((body) => c.json(body, 200))
+              )
+            ),
+            Match.exhaustive
+          )
+        )
+      )
+      .pipe(
+        Effect.catchTags({
+          UnknownUser: () => Effect.succeed(c.json({}, 404)),
+          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
+          FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
+          InvalidFormAction: () => Effect.succeed(c.json({}, 400)),
+          ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
+          ParseError: () => Effect.succeed(c.json({}, 500)),
+        })
+      );
+
+    const runnable = program.pipe(
       Effect.provide(repositoriesLayerLive),
       Effect.provide(formsLayerLive),
       Effect.provide(logLevelLive)

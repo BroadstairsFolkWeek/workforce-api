@@ -10,3 +10,7 @@ export const GetUserFormsResponse = S.Struct({
 export const UpdateUserFormResponse = S.Struct({
   data: ApiForm,
 });
+
+export const ActionFormResponse = S.Struct({
+  data: ApiForm,
+});

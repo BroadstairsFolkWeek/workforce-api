@@ -3,6 +3,7 @@ import { Schema } from "@effect/schema";
 import {
   ModelApplicationChanges,
   ModelApplicationChangesVersioned,
+  ModelApplicationStatus,
   ModelPersistedApplication,
 } from "./interfaces/application";
 import {
@@ -86,6 +87,25 @@ const modelSaveApplicationChanges =
     );
   };
 
+const modelSaveApplicationStatus =
+  (applicationId: string) => (status: ModelApplicationStatus) => {
+    return modelGetApplicationByApplicationId(applicationId).pipe(
+      Effect.map((application) => application.dbId),
+      Effect.andThen((dbId) =>
+        ApplicationsGraphListAccess.pipe(
+          Effect.andThen((listAccess) =>
+            listAccess.updateApplicationGraphListItemFields(dbId, {
+              Status: status,
+            })
+          ),
+          Effect.andThen(fieldsToApplication),
+          // Parse errors of data from Graph/SharePoint are considered unrecoverable.
+          Effect.catchTag("ParseError", (e) => Effect.die(e))
+        )
+      )
+    );
+  };
+
 const modelDeleteApplicationByApplicationId = (applicationId: string) =>
   ApplicationsGraphListAccess.pipe(
     Effect.andThen((listAccess) =>
@@ -124,6 +144,12 @@ export const applicationsRepositoryLive = Layer.effect(
         modelDeleteApplicationByApplicationId(applicationId).pipe(
           Effect.provideService(ApplicationsGraphListAccess, service)
         ),
+
+      modelSaveApplicationStatus:
+        (applicationId: string) => (status: ModelApplicationStatus) =>
+          modelSaveApplicationStatus(applicationId)(status).pipe(
+            Effect.provideService(ApplicationsGraphListAccess, service)
+          ),
     }))
   )
 );

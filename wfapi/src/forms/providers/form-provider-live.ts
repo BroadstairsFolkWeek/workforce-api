@@ -41,6 +41,30 @@ const updateFormSubmissionByFormProviderSubmissionId =
       formProviderSubmissionId
     )(profileId)(formSubmissionStatus, answers);
 
+const updateFormSubmissionStatusByFormProviderSubmissionId =
+  (providers: ProvidersType) =>
+  (
+    formProviderId: FormProviderId,
+    formProviderSubmissionId: FormProviderSubmissionId
+  ) =>
+  (profileId: ModelProfileId) =>
+  (formSubmissionStatus: VerifiedFormSubmissionStatus) =>
+    providers[0].updateFormSubmissionStatusByFormProviderSubmissionId(
+      formProviderId,
+      formProviderSubmissionId
+    )(profileId)(formSubmissionStatus);
+
+const deleteFormSubmissionByFormProviderSubmissionId =
+  (providers: ProvidersType) =>
+  (
+    formProviderId: FormProviderId,
+    formProviderSubmissionId: FormProviderSubmissionId
+  ) =>
+    providers[0].deleteFormSubmissionByFormProviderSubmissionId(
+      formProviderId,
+      formProviderSubmissionId
+    );
+
 export const formProviderLive = Layer.effect(
   FormProvider,
   Effect.all([WfApplicationFormProvider]).pipe(
@@ -54,6 +78,12 @@ export const formProviderLive = Layer.effect(
 
         updateFormSubmissionByFormProviderSubmissionId:
           updateFormSubmissionByFormProviderSubmissionId(providers),
+
+        updateFormSubmissionStatusByFormProviderSubmissionId:
+          updateFormSubmissionStatusByFormProviderSubmissionId(providers),
+
+        deleteFormSubmissionByFormProviderSubmissionId:
+          deleteFormSubmissionByFormProviderSubmissionId(providers),
       })
     )
   )

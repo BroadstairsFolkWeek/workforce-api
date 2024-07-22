@@ -1,4 +1,4 @@
-import { Array, Data, Effect } from "effect";
+import { Array, Data, Effect, Match, pipe } from "effect";
 
 import { ModelUserId } from "../model/interfaces/user-login";
 import {
@@ -9,16 +9,45 @@ import { ModelPersistedProfile } from "../model/interfaces/profile";
 import {
   FormSpec,
   FormSpecId,
+  FormSubmissionArchiveStatus,
+  FormSubmissionAction,
   FormSubmissionId,
+  FormSubmissionWithSpecAndActions,
   UnverifiedFormSubmission,
+  UnverifiedFormSubmissionStatus,
+  VerifiedFormSubmissionStatus,
 } from "./form";
 import { FormProvider, FormSpecNotFound } from "./providers/form-provider";
-import { verifyFormSubmission, verifyFormSubmissions } from "./form-validation";
-import { addAvailableActions } from "./form-actions";
+import {
+  determineFormSubmissionStatusFollowingRetraction,
+  isSubmissionStatusValidForFormSubmission,
+  verifyFormSubmission,
+  verifyFormSubmissions,
+} from "./form-validation";
+import {
+  addAvailableActions,
+  applyActionToFormSubmission,
+  FormActionResult,
+} from "./form-actions";
+import { profile } from "console";
 
 export class FormSubmissionNotFound extends Data.TaggedClass(
   "FormSubmissionNotFound"
 ) {}
+
+export class InvalidFormSubmissionStatus extends Data.TaggedClass(
+  "InvalidFormSubmissionStatus"
+) {}
+
+class ActionResultStatusUpdated extends Data.TaggedClass(
+  "ActionResultStatusUpdated"
+)<{ readonly formSubmission: FormSubmissionWithSpecAndActions }> {}
+
+class ActionFormSubmissionDeleted extends Data.TaggedClass(
+  "ActionFormSubmissionDeleted"
+) {}
+
+export type ActionFormResult = ActionResultStatusUpdated;
 
 const getFormSpecsForFormSpecIds = (formSpecIds: Set<FormSpecId>) =>
   FormProvider.pipe(
@@ -46,7 +75,7 @@ const getFormSpecsForForms = (
   );
 };
 
-const mergeSubmissionWithSpec =
+export const mergeSubmissionWithSpec =
   (formSubmission: UnverifiedFormSubmission) => (formSpec: FormSpec) => ({
     ...formSubmission,
     formSpec,
@@ -163,4 +192,61 @@ export const updateFormSubmissionForUserId =
   (userId: ModelUserId) =>
     getProfileByUserId(userId).pipe(
       Effect.andThen(updateFormSubmissionForProfile(formSubmissionId)(answers))
+    );
+
+export const deleteFormSubmissionForProfile =
+  (formSubmissionId: FormSubmissionId) =>
+  (profile: ProfileWithPhotoAndMetadata) =>
+    getFormSubmissionForProfile(formSubmissionId)(profile).pipe(
+      Effect.andThen((formSubmission) =>
+        FormProvider.pipe(
+          Effect.andThen((provider) =>
+            provider.deleteFormSubmissionByFormProviderSubmissionId(
+              formSubmission.formProviderId,
+              formSubmission.formProviderSubmissionId
+            )
+          )
+        )
+      )
+    );
+
+export const deleteFormSubmissionForUserId =
+  (formSubmissionId: FormSubmissionId) => (userId: ModelUserId) =>
+    getProfileByUserId(userId).pipe(
+      Effect.andThen(deleteFormSubmissionForProfile(formSubmissionId))
+    );
+
+export const executeFormSubmissionActionForProfile =
+  (formSubmissionId: FormSubmissionId) =>
+  (action: FormSubmissionAction) =>
+  (profile: ProfileWithPhotoAndMetadata) =>
+    getFormSubmissionForProfile(formSubmissionId)(profile).pipe(
+      Effect.andThen(applyActionToFormSubmission(action)(profile)),
+      Effect.andThen(
+        Match.type<FormActionResult>().pipe(
+          Match.tag("FormActionResultStatusUpdated", (result) =>
+            Effect.succeed(result.unverifiedFormSubmission).pipe(
+              Effect.andThen(verifyFormSubmission(profile)),
+              Effect.andThen(addAvailableActions),
+              Effect.andThen(
+                (verfiedFormSubmission) =>
+                  new ActionResultStatusUpdated({
+                    formSubmission: verfiedFormSubmission,
+                  })
+              )
+            )
+          ),
+          Match.exhaustive
+        )
+      )
+    );
+
+export const executeFormSubmissionActionForUserId =
+  (formSubmissionId: FormSubmissionId) =>
+  (userId: ModelUserId) =>
+  (action: FormSubmissionAction) =>
+    getProfileByUserId(userId).pipe(
+      Effect.andThen(
+        executeFormSubmissionActionForProfile(formSubmissionId)(action)
+      )
     );
