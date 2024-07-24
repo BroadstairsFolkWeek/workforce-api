@@ -76,7 +76,14 @@ const ApplicationFormAnswers = S.Struct({
 });
 
 const CreatableApplicationFormAnswers = ApplicationFormAnswers.pipe(
-  S.omit("version")
+  S.omit("version", "daysAvailable"),
+  S.extend(
+    S.Struct({
+      daysAvailable: S.optionalWith(S.Array(DaysAvailableDay), {
+        default: () => [],
+      }),
+    })
+  )
 );
 
 interface ApplicationFormAnswers
@@ -276,7 +283,11 @@ const createFormSubmission =
         Effect.andThen((addableApplicationAnswers) =>
           applicationAnswersToModelApplicationChanges(
             VerifiedFormSubmissionStatus.make("draft")
-          )({ ...addableApplicationAnswers, version: 1 })
+          )({
+            ...addableApplicationAnswers,
+            version: 1,
+            daysAvailable: addableApplicationAnswers.daysAvailable ?? [],
+          })
         ),
         Effect.andThen((applicationChanges) =>
           applicationsRepo.modelCreateApplication(profileId)(applicationChanges)

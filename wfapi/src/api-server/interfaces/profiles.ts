@@ -24,7 +24,7 @@ export const ApiProfile = S.Struct({
 
 export const ApiProfileUpdates = ApiProfile.pipe(
   S.omit("profileId", "version", "dbId", "photoUrl", "photoId"),
-  S.partial()
+  S.partial
 );
 
 export interface ApiProfile extends S.Schema.Type<typeof ApiProfile> {}

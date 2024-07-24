@@ -29,11 +29,11 @@
   "dependencies": {
     "@azure/identity": "^4.2.1",
     "@effect/language-service": "^0.1.0",
-    "@effect/schema": "^0.68.23",
+    "@effect/schema": "^0.69.1",
     "@hono/node-server": "^1.11.2",
     "@hono/zod-validator": "^0.2.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "effect": "^3.5.3",
+    "effect": "^3.5.7",
     "hono": "^4.4.5",
     "isomorphic-fetch": "^3.0.0",
     "survey-core": "^1.11.6",
