@@ -1,5 +1,6 @@
 import { Effect, Context } from "effect";
 import {
+  ModelEncodedAddableApplication,
   ModelEncodedApplicationChanges,
   ModelEncodedPersistedApplication,
 } from "../interfaces/application";
@@ -10,6 +11,12 @@ export class ApplicationsGraphListAccess extends Context.Tag(
 )<
   ApplicationsGraphListAccess,
   {
+    readonly createApplicationGraphListItem: (
+      application: ModelEncodedAddableApplication
+    ) => Effect.Effect<
+      PersistedGraphListItem<ModelEncodedPersistedApplication>
+    >;
+
     readonly getApplicationGraphListItemsByFilter: (
       filter?: string
     ) => Effect.Effect<

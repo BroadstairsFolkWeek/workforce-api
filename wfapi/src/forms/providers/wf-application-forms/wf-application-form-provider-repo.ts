@@ -12,8 +12,8 @@ import { ApplicationsRepository } from "../../../model/applications-repository";
 import { Schema as S } from "@effect/schema";
 import {
   ModelAgeGroup,
-  ModelApplicationChanges,
   ModelApplicationStatus,
+  ModelCoreApplication,
   ModelPersistedApplication,
   ModelTShirtSize,
 } from "../../../model/interfaces/application";
@@ -26,6 +26,7 @@ import {
 import {
   FormProviderId,
   FormProviderSubmissionId,
+  FormSpec,
   FormSpecId,
   FormSubmissionId,
   UnverifiedFormSubmission,
@@ -66,12 +67,17 @@ const ApplicationFormAnswers = S.Struct({
   tShirtSize: S.optional(ModelTShirtSize),
   otherInformation: S.optional(S.String),
   acceptedTermsAndConditions: S.optional(S.Boolean),
+  whatsApp: S.optional(S.Boolean),
   consentNewlifeWills: S.optional(S.Boolean),
   newlifeHaveWillInPlace: S.optional(S.Boolean),
   newlifeHavePoaInPlace: S.optional(S.Boolean),
   newlifeWantFreeReview: S.optional(S.Boolean),
   version: S.Number,
 });
+
+const CreatableApplicationFormAnswers = ApplicationFormAnswers.pipe(
+  S.omit("version")
+);
 
 interface ApplicationFormAnswers
   extends S.Schema.Type<typeof ApplicationFormAnswers> {}
@@ -120,7 +126,7 @@ const determineApplicationStatus = (
 
 const applicationAnswersToModelApplicationChanges =
   (status: VerifiedFormSubmissionStatus) =>
-  (applicationAnswers: ApplicationFormAnswers): ModelApplicationChanges => {
+  (applicationAnswers: ApplicationFormAnswers): ModelCoreApplication => {
     return {
       ...applicationAnswers,
       availableFirstFriday: Array.contains(
@@ -150,6 +156,15 @@ const applicationAnswersToModelApplicationChanges =
         "day8"
       ),
       status: determineApplicationStatus(status),
+      acceptedTermsAndConditions:
+        applicationAnswers.acceptedTermsAndConditions ?? false,
+      consentNewlifeWills: applicationAnswers.consentNewlifeWills ?? false,
+      newlifeHaveWillInPlace:
+        applicationAnswers.newlifeHaveWillInPlace ?? false,
+      newlifeHavePoaInPlace: applicationAnswers.newlifeHavePoaInPlace ?? false,
+      newlifeWantFreeReview: applicationAnswers.newlifeWantFreeReview ?? false,
+      whatsApp: applicationAnswers.whatsApp ?? false,
+      title: "Workforce Application",
     };
   };
 
@@ -234,11 +249,45 @@ const getCreatableFormSpecs =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
     getApplicationFormForProfileId(applicationsRepo)(profileId).pipe(
-      Effect.andThen(() => []),
+      Effect.andThen(() => [] as FormSpec[]),
       Effect.catchTag("ApplicationNotFound", () =>
         Effect.succeed([workforceApplicationFormSpec])
       )
     );
+
+const getCreatableFormSpec =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (profileId: ModelProfileId) =>
+  (formSpecId: FormSpecId) =>
+    getCreatableFormSpecs(applicationsRepo)(profileId).pipe(
+      Effect.andThen(Array.filter((formSpec) => formSpec.id === formSpecId)),
+      Effect.andThen(Array.head),
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(new FormSpecNotFound({ formSpecId }))
+      )
+    );
+
+const createFormSubmission =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
+  (profileId: ModelProfileId) =>
+  (formSpecId: FormSpecId, answers: unknown) =>
+    S.decodeUnknown(CreatableApplicationFormAnswers)(answers)
+      .pipe(
+        Effect.andThen((addableApplicationAnswers) =>
+          applicationAnswersToModelApplicationChanges(
+            VerifiedFormSubmissionStatus.make("draft")
+          )({ ...addableApplicationAnswers, version: 1 })
+        ),
+        Effect.andThen((applicationChanges) =>
+          applicationsRepo.modelCreateApplication(profileId)(applicationChanges)
+        ),
+        Effect.andThen(getFormSubmissionForApplication(profileId))
+      )
+      .pipe(
+        Effect.catchTags({
+          ParseError: (e) => Effect.die(e),
+        })
+      );
 
 const updateFormSubmissionByFormProviderSubmissionId =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
@@ -309,15 +358,23 @@ export const wfApplicationFormProviderLive = Layer.effect(
   Effect.all([ApplicationsRepository]).pipe(
     Effect.andThen(([applicationsRepository]) =>
       WfApplicationFormProvider.of({
+        createFormSubmission: createFormSubmission(applicationsRepository),
+
         getActiveFormSubmissions: getActiveFormSubmissions(
           applicationsRepository
         ),
+
         getFormSpec,
+
         getCreatableFormSpecs: getCreatableFormSpecs(applicationsRepository),
+
+        getCreatableFormSpec: getCreatableFormSpec(applicationsRepository),
+
         updateFormSubmissionByFormProviderSubmissionId:
           updateFormSubmissionByFormProviderSubmissionId(
             applicationsRepository
           ),
+
         updateFormSubmissionStatusByFormProviderSubmissionId:
           updateFormSubmissionStatusByFormProviderSubmissionId(
             applicationsRepository

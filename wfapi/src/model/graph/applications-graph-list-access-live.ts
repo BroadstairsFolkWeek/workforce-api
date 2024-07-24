@@ -2,10 +2,12 @@ import { Config, Effect, Layer } from "effect";
 import { GraphClient } from "../../graph/graph-client";
 import { ApplicationsGraphListAccess } from "./applications-graph-list-access";
 import {
+  ModelEncodedAddableApplication,
   ModelEncodedApplicationChanges,
   ModelEncodedPersistedApplication,
 } from "../interfaces/application";
 import {
+  createGraphListItem,
   deleteGraphListItem,
   getListItemsByFilter,
   updateGraphListItemFields,
@@ -21,6 +23,13 @@ export const applicationsGraphListAccessLive = Layer.effect(
   Effect.all([applicationsListId, GraphClient]).pipe(
     Effect.map(([applicationsListId, graphClient]) =>
       ApplicationsGraphListAccess.of({
+        createApplicationGraphListItem: (
+          application: ModelEncodedAddableApplication
+        ) =>
+          createGraphListItem(applicationsListId)(application).pipe(
+            Effect.provideService(GraphClient, graphClient)
+          ),
+
         getApplicationGraphListItemsByFilter: (filter?: string) =>
           getListItemsByFilter(
             applicationsListId

@@ -20,23 +20,28 @@ import { repositoriesLayerLive } from "../contexts/repositories-live";
 import { logLevelLive } from "../util/logging";
 import {
   ActionFormResult,
+  createFormSubmissionForUserId,
   deleteFormSubmissionForUserId,
   executeFormSubmissionActionForUserId,
+  getCreatableFormsByUserId,
   getFormsByUserId,
   updateFormSubmissionForUserId,
 } from "../forms/forms";
 import {
   ActionFormResponse,
+  GetCreatableFormSpecsResponse,
   GetUserFormsResponse,
+  PostUserCreatableFormNewFormRequest,
+  PostUserCreatableFormNewFormResponse,
   UpdateUserFormResponse,
 } from "./interfaces/forms";
 import { formsLayerLive } from "../contexts/forms-live";
 import { PostUsersResponse } from "./interfaces/users";
 import { deleteUser } from "../services/users";
 import {
+  FormSpecId,
   FormSubmissionAction,
   FormSubmissionId,
-  VerifiedFormSubmissionStatus,
 } from "../forms/form";
 import { ApiInvalidRequest } from "./interfaces/api";
 
@@ -47,6 +52,11 @@ const putFormParamsSchema = z.object({
 });
 const postFormParamsSchema = putFormParamsSchema;
 const deleteFormParamsSchema = putFormParamsSchema;
+
+const postCreatableFormParamsSchema = z.object({
+  userId: z.string().brand("UserId"),
+  formSpecId: z.string().brand("FormSpecId"),
+});
 
 const postUsersBodySchema = z.object({
   userId: z.string(),
@@ -263,6 +273,95 @@ usersApi.get(
   }
 );
 
+usersApi.get(
+  "/:userId/profile/creatableforms",
+  zValidator("param", userIdParamSchema),
+  async (c) => {
+    const { userId } = c.req.valid("param");
+
+    const getFormsProgram = getCreatableFormsByUserId(ModelUserId.make(userId!))
+      .pipe(
+        Effect.tap((forms) =>
+          Effect.logTrace(
+            `Retrieved ${forms.length} forms for user: ${userId}`,
+            forms
+          )
+        ),
+        Effect.andThen((formSpecs) => ({ data: formSpecs })),
+        Effect.andThen(S.encode(GetCreatableFormSpecsResponse)),
+        Effect.andThen((body) => c.json(body, 200))
+      )
+      .pipe(
+        Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
+        Effect.catchTag("ProfileNotFound", () =>
+          Effect.succeed(c.json({}, 404))
+        ),
+        Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500)))
+      );
+
+    const runnable = getFormsProgram.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
+usersApi.post(
+  "/:userId/profile/creatableforms/:formSpecId/create",
+  zValidator("param", postCreatableFormParamsSchema),
+  async (c) => {
+    const userIdEffect = S.decodeUnknown(ModelUserId)(
+      c.req.valid("param").userId
+    );
+
+    const formSpecIdEffect = S.decodeUnknown(FormSpecId)(
+      c.req.valid("param").formSpecId
+    );
+
+    const decodedRequestBody = Effect.tryPromise({
+      try: () => c.req.json(),
+      catch: () => new ApiInvalidRequest(),
+    }).pipe(
+      Effect.andThen(S.decodeUnknown(PostUserCreatableFormNewFormRequest)),
+      Effect.catchTag("ParseError", () => Effect.fail(new ApiInvalidRequest()))
+    );
+
+    const program = Effect.all([
+      userIdEffect,
+      formSpecIdEffect,
+      decodedRequestBody,
+    ])
+      .pipe(
+        Effect.andThen(([userId, formSpecId, requestBody]) =>
+          createFormSubmissionForUserId(userId)(formSpecId)(requestBody.answers)
+        ),
+        Effect.andThen((formSubmission) => ({ data: formSubmission })),
+        Effect.andThen(S.encode(PostUserCreatableFormNewFormResponse)),
+        Effect.andThen((body) => c.json(body, 200))
+      )
+      .pipe(
+        Effect.catchTags({
+          ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
+          UnknownUser: () => Effect.succeed(c.json({}, 404)),
+          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
+          FormSpecNotFound: () => Effect.succeed(c.json({}, 404)),
+          ParseError: () => Effect.succeed(c.json({}, 500)),
+        })
+      );
+
+    const runnable = program.pipe(
+      Effect.provide(repositoriesLayerLive),
+      Effect.provide(formsLayerLive),
+      Effect.provide(logLevelLive)
+    );
+
+    return await Effect.runPromise(runnable);
+  }
+);
+
 usersApi.put(
   "/:userId/profile/forms/:formSubmissionId",
   zValidator("param", putFormParamsSchema),
@@ -317,7 +416,7 @@ usersApi.delete(
         Effect.andThen(([userId, formSubmissionId]) =>
           deleteFormSubmissionForUserId(formSubmissionId)(userId)
         ),
-        Effect.andThen(Effect.succeed(c.json({}, 204)))
+        Effect.andThen(() => Effect.succeed(c.body(null, 204)))
       )
       .pipe(
         Effect.catchTags({
@@ -388,7 +487,7 @@ usersApi.post(
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
           ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
-          InvalidFormAction: () => Effect.succeed(c.json({}, 400)),
+          UnprocessableFormAction: () => Effect.succeed(c.json({}, 422)),
           ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
           ParseError: () => Effect.succeed(c.json({}, 500)),
         })

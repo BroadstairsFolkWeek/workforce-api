@@ -25,9 +25,20 @@ export class FormProvider extends Context.Tag("FormProvider")<
       profileId: ModelProfileId
     ) => Effect.Effect<readonly FormSpec[]>;
 
+    getCreatableFormSpec: (
+      profileId: ModelProfileId
+    ) => (formSpecId: FormSpecId) => Effect.Effect<FormSpec, FormSpecNotFound>;
+
     getFormSpec: (
       formSpecId: FormSpecId
     ) => Effect.Effect<FormSpec, FormSpecNotFound>;
+
+    createFormSubmission: (
+      profileId: ModelProfileId
+    ) => (
+      formSpecId: FormSpecId,
+      answers: unknown
+    ) => Effect.Effect<UnverifiedFormSubmission, never, never>;
 
     getActiveFormSubmissions: (
       profileId: ModelProfileId

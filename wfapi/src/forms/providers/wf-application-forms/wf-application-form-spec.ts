@@ -100,7 +100,7 @@ export const applicationFormQuestionsModel = {
             {
               type: "text",
               name: "previousTeam",
-              visibleIf: "{previousVolunteer} = 'Yes'",
+              visibleIf: "{previousVolunteer}",
               title: "If yes, which team?",
             },
           ],

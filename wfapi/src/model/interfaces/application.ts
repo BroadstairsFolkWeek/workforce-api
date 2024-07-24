@@ -66,7 +66,7 @@ export const ModelApplicationStatusFromString = S.transformOrFail(
   }
 );
 
-const ModelCoreApplication = S.Struct({
+export const ModelCoreApplication = S.Struct({
   telephone: S.optional(S.String).pipe(S.fromKey("Telephone")),
   address: S.optional(S.String).pipe(S.fromKey("Address")),
   emergencyContactName: S.optional(S.String).pipe(
@@ -144,6 +144,8 @@ const ModelCoreApplication = S.Struct({
   ),
   title: S.propertySignature(S.String).pipe(S.fromKey("Title")),
 });
+export interface ModelCoreApplication
+  extends S.Schema.Type<typeof ModelCoreApplication> {}
 
 const ModelApplicationMetadata = S.Struct({
   applicationId: S.propertySignature(S.String).pipe(S.fromKey("ApplicationId")),
@@ -164,6 +166,15 @@ export const ModelPersistedApplication = S.extend(
   ModelCoreApplication,
   S.extend(ModelApplicationMetadata, ModelApplicationPersistanceData)
 );
+
+export const ModelAddableApplication = S.extend(
+  ModelCoreApplication,
+  ModelApplicationMetadata
+);
+export interface ModelAddableApplication
+  extends S.Schema.Type<typeof ModelAddableApplication> {}
+export interface ModelEncodedAddableApplication
+  extends S.Schema.Encoded<typeof ModelAddableApplication> {}
 
 export const ModelApplicationChanges = S.partial(ModelCoreApplication);
 export const ModelApplicationChangesVersioned = S.extend(

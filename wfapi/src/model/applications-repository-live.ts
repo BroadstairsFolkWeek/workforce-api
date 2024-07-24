@@ -1,9 +1,12 @@
-import { Effect, Layer } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
+import { v4 as uuidv4 } from "uuid";
 import {
+  ModelAddableApplication,
   ModelApplicationChanges,
   ModelApplicationChangesVersioned,
   ModelApplicationStatus,
+  ModelCoreApplication,
   ModelPersistedApplication,
 } from "./interfaces/application";
 import {
@@ -13,6 +16,9 @@ import {
 import { PersistedGraphListItemFields } from "./interfaces/graph/graph-list-items";
 import { ApplicationsGraphListAccess } from "./graph/applications-graph-list-access";
 import { RepositoryConflictError } from "./repository-errors";
+import { ModelProfileId } from "./interfaces/profile";
+
+type ListAccessService = Context.Tag.Service<ApplicationsGraphListAccess>;
 
 const fieldsToApplication = (fields: PersistedGraphListItemFields) => {
   // Apply defaults for any missing fields.
@@ -27,37 +33,69 @@ const fieldsToApplication = (fields: PersistedGraphListItemFields) => {
   return Schema.decodeUnknown(ModelPersistedApplication)(itemWithDefaults);
 };
 
-const modelGetApplicationByFilter = (filter: string) => {
-  return ApplicationsGraphListAccess.pipe(
-    Effect.flatMap((listAccess) =>
-      listAccess.getApplicationGraphListItemsByFilter(filter)
-    ),
-    Effect.head,
-    Effect.catchTag("NoSuchElementException", () =>
-      Effect.fail(new ApplicationNotFound())
-    ),
-    Effect.map((item) => item.fields),
-    Effect.flatMap((fields) => fieldsToApplication(fields)),
-    // Parse errors of data from Graph/SharePoint are considered unrecoverable.
-    Effect.catchTag("ParseError", (e) => Effect.die(e))
-  );
-};
+const modelGetApplicationByFilter =
+  (listAccess: ListAccessService) => (filter: string) =>
+    listAccess.getApplicationGraphListItemsByFilter(filter).pipe(
+      Effect.head,
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(new ApplicationNotFound())
+      ),
+      Effect.map((item) => item.fields),
+      Effect.flatMap((fields) => fieldsToApplication(fields)),
+      // Parse errors of data from Graph/SharePoint are considered unrecoverable.
+      Effect.catchTag("ParseError", (e) => Effect.die(e))
+    );
 
-const modelGetApplicationByProfileId = (profileId: string) => {
-  return modelGetApplicationByFilter(`fields/ProfileId eq '${profileId}'`);
-};
+const getApplicationByProfileId =
+  (listAccess: ListAccessService) => (profileId: string) => {
+    return modelGetApplicationByFilter(listAccess)(
+      `fields/ProfileId eq '${profileId}'`
+    );
+  };
 
-const modelGetApplicationByApplicationId = (applicationId: string) => {
-  return modelGetApplicationByFilter(
-    `fields/ApplicationId eq '${applicationId}'`
-  );
-};
+const getApplicationByApplicationId =
+  (listAccess: ListAccessService) => (applicationId: string) => {
+    return modelGetApplicationByFilter(listAccess)(
+      `fields/ApplicationId eq '${applicationId}'`
+    );
+  };
 
-const modelSaveApplicationChanges =
+const coreToAddableApplication =
+  (profileId: string) =>
+  (application: ModelCoreApplication): ModelAddableApplication => {
+    return {
+      ...application,
+      applicationId: uuidv4(),
+      profileId: ModelProfileId.make(profileId),
+      version: 1,
+    };
+  };
+
+const createApplication =
+  (listAccess: ListAccessService) =>
+  (profileId: string) =>
+  (fields: ModelCoreApplication) =>
+    Effect.succeed(fields)
+      .pipe(
+        Effect.andThen(coreToAddableApplication(profileId)),
+        Effect.andThen(Schema.encode(ModelAddableApplication)),
+        Effect.andThen((addableApplication) =>
+          listAccess.createApplicationGraphListItem(addableApplication)
+        ),
+        Effect.andThen((item) => item.fields),
+        Effect.andThen(fieldsToApplication)
+      )
+      .pipe(
+        // Parse errors of data from Graph/SharePoint are considered unrecoverable.
+        Effect.catchTag("ParseError", (e) => Effect.die(e))
+      );
+
+const saveApplicationChanges =
+  (listAccess: ListAccessService) =>
   (applicationId: string) =>
   (applyToVersion: number) =>
   (changes: ModelApplicationChanges) => {
-    const dbIdAndConflictCheck = modelGetApplicationByApplicationId(
+    const dbIdAndConflictCheck = getApplicationByApplicationId(listAccess)(
       applicationId
     ).pipe(
       Effect.flatMap((application) =>
@@ -73,12 +111,8 @@ const modelSaveApplicationChanges =
       version: applyToVersion + 1,
     });
 
-    return Effect.all([
-      dbIdAndConflictCheck,
-      changedFields,
-      ApplicationsGraphListAccess,
-    ]).pipe(
-      Effect.flatMap(([dbId, fields, listAccess]) =>
+    return Effect.all([dbIdAndConflictCheck, changedFields]).pipe(
+      Effect.flatMap(([dbId, fields]) =>
         listAccess.updateApplicationGraphListItemFields(dbId, fields)
       ),
       Effect.flatMap((fields) => fieldsToApplication(fields)),
@@ -87,69 +121,46 @@ const modelSaveApplicationChanges =
     );
   };
 
-const modelSaveApplicationStatus =
-  (applicationId: string) => (status: ModelApplicationStatus) => {
-    return modelGetApplicationByApplicationId(applicationId).pipe(
+const saveApplicationStatus =
+  (listAccess: ListAccessService) =>
+  (applicationId: string) =>
+  (status: ModelApplicationStatus) =>
+    getApplicationByApplicationId(listAccess)(applicationId).pipe(
       Effect.map((application) => application.dbId),
       Effect.andThen((dbId) =>
-        ApplicationsGraphListAccess.pipe(
-          Effect.andThen((listAccess) =>
-            listAccess.updateApplicationGraphListItemFields(dbId, {
-              Status: status,
-            })
-          ),
-          Effect.andThen(fieldsToApplication),
-          // Parse errors of data from Graph/SharePoint are considered unrecoverable.
-          Effect.catchTag("ParseError", (e) => Effect.die(e))
-        )
-      )
+        listAccess.updateApplicationGraphListItemFields(dbId, {
+          Status: status,
+        })
+      ),
+      Effect.andThen(fieldsToApplication),
+      // Parse errors of data from Graph/SharePoint are considered unrecoverable.
+      Effect.catchTag("ParseError", (e) => Effect.die(e))
     );
-  };
 
-const modelDeleteApplicationByApplicationId = (applicationId: string) =>
-  ApplicationsGraphListAccess.pipe(
-    Effect.andThen((listAccess) =>
-      modelGetApplicationByApplicationId(applicationId).pipe(
-        Effect.andThen((application) => application.dbId),
-        Effect.andThen((dbId) =>
-          listAccess.deleteApplicationGraphListItem(dbId)
-        )
-      )
-    )
-  );
+const deleteApplicationByApplicationId =
+  (listAccess: ListAccessService) => (applicationId: string) =>
+    getApplicationByApplicationId(listAccess)(applicationId).pipe(
+      Effect.andThen((application) => application.dbId),
+      Effect.andThen((dbId) => listAccess.deleteApplicationGraphListItem(dbId))
+    );
 
 export const applicationsRepositoryLive = Layer.effect(
   ApplicationsRepository,
   ApplicationsGraphListAccess.pipe(
     Effect.map((service) => ({
-      modelGetApplicationByProfileId: (profileId: string) =>
-        modelGetApplicationByProfileId(profileId).pipe(
-          Effect.provideService(ApplicationsGraphListAccess, service)
-        ),
+      modelCreateApplication: createApplication(service),
 
-      modelGetApplicationByApplicationId: (applicationId: string) =>
-        modelGetApplicationByApplicationId(applicationId).pipe(
-          Effect.provideService(ApplicationsGraphListAccess, service)
-        ),
+      modelGetApplicationByProfileId: getApplicationByProfileId(service),
 
-      modelSaveApplicationChanges:
-        (applicationId: string) =>
-        (applyToVersion: number) =>
-        (changes: ModelApplicationChanges) =>
-          modelSaveApplicationChanges(applicationId)(applyToVersion)(
-            changes
-          ).pipe(Effect.provideService(ApplicationsGraphListAccess, service)),
+      modelGetApplicationByApplicationId:
+        getApplicationByApplicationId(service),
 
-      modelDeleteApplicationByApplicationId: (applicationId: string) =>
-        modelDeleteApplicationByApplicationId(applicationId).pipe(
-          Effect.provideService(ApplicationsGraphListAccess, service)
-        ),
+      modelSaveApplicationChanges: saveApplicationChanges(service),
 
-      modelSaveApplicationStatus:
-        (applicationId: string) => (status: ModelApplicationStatus) =>
-          modelSaveApplicationStatus(applicationId)(status).pipe(
-            Effect.provideService(ApplicationsGraphListAccess, service)
-          ),
+      modelDeleteApplicationByApplicationId:
+        deleteApplicationByApplicationId(service),
+
+      modelSaveApplicationStatus: saveApplicationStatus(service),
     }))
   )
 );

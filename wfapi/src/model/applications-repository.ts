@@ -3,6 +3,7 @@ import { ModelProfileId } from "./interfaces/profile";
 import {
   ModelApplicationChanges,
   ModelApplicationStatus,
+  ModelCoreApplication,
   ModelPersistedApplication,
 } from "./interfaces/application";
 import { RepositoryConflictError } from "./repository-errors";
@@ -19,6 +20,12 @@ export class ApplicationsRepository extends Context.Tag(
     readonly modelGetApplicationByProfileId: (
       profileId: ModelProfileId
     ) => Effect.Effect<ModelPersistedApplication, ApplicationNotFound>;
+
+    readonly modelCreateApplication: (
+      profileId: string
+    ) => (
+      fields: ModelCoreApplication
+    ) => Effect.Effect<ModelPersistedApplication, never>;
 
     readonly modelSaveApplicationChanges: (
       applicationId: string

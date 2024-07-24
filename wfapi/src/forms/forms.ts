@@ -250,3 +250,47 @@ export const executeFormSubmissionActionForUserId =
         executeFormSubmissionActionForProfile(formSubmissionId)(action)
       )
     );
+
+export const getCreatableFormsByProfile = (profile: ModelPersistedProfile) =>
+  FormProvider.pipe(
+    Effect.andThen((formProvider) =>
+      formProvider.getCreatableFormSpecs(profile.profileId)
+    )
+  );
+
+export const getCreatableFormsByUserId = (userId: ModelUserId) =>
+  getProfileByUserId(userId).pipe(
+    Effect.andThen((profile) => getCreatableFormsByProfile(profile))
+  );
+
+export const createFormSubmissionForProfile =
+  (profile: ModelPersistedProfile) =>
+  (formSpecId: FormSpecId) =>
+  (answers: unknown) =>
+    FormProvider.pipe(
+      Effect.andThen((formProvider) =>
+        formProvider
+          .getCreatableFormSpec(profile.profileId)(formSpecId)
+          .pipe(
+            Effect.andThen((formSpec) =>
+              formProvider
+                .createFormSubmission(profile.profileId)(formSpec.id, answers)
+                .pipe(
+                  Effect.andThen((formSubmission) =>
+                    mergeSubmissionWithSpec(formSubmission)(formSpec)
+                  ),
+                  Effect.andThen(verifyFormSubmission(profile)),
+                  Effect.andThen(addAvailableActions)
+                )
+            )
+          )
+      )
+    );
+
+export const createFormSubmissionForUserId =
+  (userId: ModelUserId) => (formSpecId: FormSpecId) => (answers: unknown) =>
+    getProfileByUserId(userId).pipe(
+      Effect.andThen((profile) =>
+        createFormSubmissionForProfile(profile)(formSpecId)(answers)
+      )
+    );

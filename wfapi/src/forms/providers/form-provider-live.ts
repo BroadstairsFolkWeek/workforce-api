@@ -6,7 +6,7 @@ import {
   FormSpecId,
   VerifiedFormSubmissionStatus,
 } from "../form";
-import { FormProvider } from "./form-provider";
+import { FormProvider, FormSpecNotFound } from "./form-provider";
 import { WfApplicationFormProvider } from "./wf-application-forms/wf-application-form-provider";
 
 type ProvidersType = readonly Context.Tag.Service<FormProvider>[];
@@ -17,10 +17,28 @@ const getCreatableFormSpecs =
       providers.map((provider) => provider.getCreatableFormSpecs(profileId))
     ).pipe(Effect.andThen(Array.flatten));
 
+const getCreatableFormSpec =
+  (providers: ProvidersType) =>
+  (profileId: ModelProfileId) =>
+  (formSpecId: FormSpecId) =>
+    getCreatableFormSpecs(providers)(profileId).pipe(
+      Effect.andThen(Array.filter((formSpec) => formSpec.id === formSpecId)),
+      Effect.andThen(Array.head),
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(new FormSpecNotFound({ formSpecId }))
+      )
+    );
+
 const getFormSpec = (providers: ProvidersType) => (formSpecId: FormSpecId) =>
   Effect.firstSuccessOf(
     providers.map((provider) => provider.getFormSpec(formSpecId))
   );
+
+const createFormSubmission =
+  (providers: ProvidersType) =>
+  (profileId: ModelProfileId) =>
+  (formSpecId: FormSpecId, answers: unknown) =>
+    providers[0].createFormSubmission(profileId)(formSpecId, answers);
 
 const getActiveFormSubmissions =
   (providers: ProvidersType) => (profileId: ModelProfileId) =>
@@ -72,9 +90,13 @@ export const formProviderLive = Layer.effect(
       Effect.succeed({
         getActiveFormSubmissions: getActiveFormSubmissions(providers),
 
+        getCreatableFormSpec: getCreatableFormSpec(providers),
+
         getFormSpec: getFormSpec(providers),
 
         getCreatableFormSpecs: getCreatableFormSpecs(providers),
+
+        createFormSubmission: createFormSubmission(providers),
 
         updateFormSubmissionByFormProviderSubmissionId:
           updateFormSubmissionByFormProviderSubmissionId(providers),

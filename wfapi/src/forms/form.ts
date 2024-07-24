@@ -4,6 +4,11 @@ import { ModelProfileId } from "../model/interfaces/profile";
 export const FormProviderId = S.String.pipe(S.brand("FormProviderId"));
 export type FormProviderId = S.Schema.Type<typeof FormProviderId>;
 
+export const UserCreatableFormAction = S.Literal("create");
+export type UserCreatableFormAction = S.Schema.Type<
+  typeof UserCreatableFormAction
+>;
+
 const FormSpecRequirements = S.Struct({
   profileRequirements: S.Struct({
     firstName: S.optional(S.Boolean),

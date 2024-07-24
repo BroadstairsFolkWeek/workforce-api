@@ -11,7 +11,9 @@ import { determineFormSubmissionStatusFollowingRetraction } from "./form-validat
 import { FormProvider } from "./providers/form-provider";
 import { mergeSubmissionWithSpec } from "./forms";
 
-export class InvalidFormAction extends Data.TaggedClass("InvalidFormAction") {}
+export class UnprocessableFormAction extends Data.TaggedClass(
+  "UnprocessableFormAction"
+) {}
 
 class FormActionResultStatusUpdated extends Data.TaggedClass(
   "FormActionResultStatusUpdated"
@@ -88,7 +90,7 @@ export const applyActionToFormSubmission =
         ),
         Effect.andThen(
           Effect.catchTag("NoSuchElementException", () =>
-            Effect.fail(new InvalidFormAction())
+            Effect.fail(new UnprocessableFormAction())
           )
         )
       )
