@@ -103,20 +103,8 @@
           "description": "Please select the teams you would prefer to work on. Most preferred team first.",
           "elements": [
             {
-              "type": "checkbox",
-              "name": "showTeamDescriptions",
-              "indent": 1,
-              "titleLocation": "hidden",
-              "choices": [
-                {
-                  "value": "true",
-                  "text": "Show team descriptions"
-                }
-              ]
-            },
-            {
               "type": "panel",
-              "name": "panel-team-descriptions",
+              "name": "Team descriptions",
               "description": "Expand to view team descriptions",
               "state": "collapsed",
               "elements": [
