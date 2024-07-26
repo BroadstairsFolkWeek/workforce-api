@@ -17,6 +17,12 @@
       "jestCommandLine": "npm run test:integration --"
     },
     {
+      "name": "wfapi-exploratory-tests",
+      "rootPath": "wfapi",
+      "runMode": "on-demand",
+      "jestCommandLine": "npm run test:exploratory --"
+    },
+    {
       "name": "wfphotos-unit-tests",
       "rootPath": "wfphotos",
       "jestCommandLine": "npm run test --"
