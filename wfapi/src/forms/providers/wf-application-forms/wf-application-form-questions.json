@@ -1,0 +1,306 @@
+{
+  "title": "Workforce Application Form",
+  "focusFirstQuestionAutomatic": true,
+  "pages": [
+    {
+      "name": "page1",
+      "elements": [
+        {
+          "type": "panel",
+          "name": "availability",
+          "elements": [
+            {
+              "type": "checkbox",
+              "name": "daysAvailable",
+              "title": "What is your availability throughout folkweek?",
+              "isRequired": true,
+              "choices": [
+                {
+                  "value": "day1",
+                  "text": "Friday 9th August"
+                },
+                {
+                  "value": "day2",
+                  "text": "Saturday 10th August"
+                },
+                {
+                  "value": "day3",
+                  "text": "Sunday 11th August"
+                },
+                {
+                  "value": "day4",
+                  "text": "Monday 12th August"
+                },
+                {
+                  "value": "day5",
+                  "text": "Tuesday 13th August"
+                },
+                {
+                  "value": "day6",
+                  "text": "Wednesday 14th August"
+                },
+                {
+                  "value": "day7",
+                  "text": "Thursday 15th August"
+                },
+                {
+                  "value": "day8",
+                  "text": "Friday 16th August"
+                }
+              ],
+              "showSelectAllItem": true,
+              "minSelectedChoices": 1
+            }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "name": "ageGroup",
+          "title": "Which age group are you in?",
+          "isRequired": true,
+          "choices": ["18-20", "21-25", "26-35", "36-55", "56-65", "66+"]
+        },
+        {
+          "type": "panel",
+          "name": "emergency-contact",
+          "title": "Emergency contact",
+          "elements": [
+            {
+              "type": "text",
+              "name": "emergencyContactName",
+              "title": "Emergency Contact Name",
+              "isRequired": true
+            },
+            {
+              "type": "text",
+              "name": "emergencyContactTelephone",
+              "title": "Emergency Contact Telephone",
+              "isRequired": true
+            }
+          ]
+        },
+        {
+          "type": "panel",
+          "name": "previous-volunteer",
+          "elements": [
+            {
+              "type": "boolean",
+              "name": "previousVolunteer",
+              "title": "Have you previously volunteered with BFW?",
+              "defaultValue": "No"
+            },
+            {
+              "type": "text",
+              "name": "previousTeam",
+              "visibleIf": "{previousVolunteer}",
+              "title": "If yes, which team?"
+            }
+          ]
+        },
+        {
+          "type": "panel",
+          "name": "panel1",
+          "description": "Please select the teams you would prefer to work on. Most preferred team first.",
+          "elements": [
+            {
+              "type": "checkbox",
+              "name": "showTeamDescriptions",
+              "indent": 1,
+              "titleLocation": "hidden",
+              "choices": [
+                {
+                  "value": "true",
+                  "text": "Show team descriptions"
+                }
+              ]
+            },
+            {
+              "type": "panel",
+              "name": "panel-team-descriptions",
+              "description": "Expand to view team descriptions",
+              "state": "collapsed",
+              "elements": [
+                {
+                  "type": "html",
+                  "name": "question4",
+                  "html": "<style>\n    dt {\n        font-weight: bold;\n    }\n    dd {\n        margin-bottom: 4px;\n    }\n</style>\n\n<dl>\n<dt>Artiste accommodation</dt>\n<dd>Checking and re-setting artist accommodation. Happy to work some flexible hours.</dd>\n\n<dt>Bandstand</dt>\n<dd>Some physical work, stewarding, liaising with public and artistes. Morning Hobby Horse club (see children's team)</dd>\n\n<dt>Bar</dt>\n<dd>Must have previous experience, be a friendly people person. The role is physical and requires a lot of standing.</dd>\n\n<dt>Box Office</dt>\n<dd>Ticket and merchandise sales, information, and festival hub.\nRetail experience very welcome.</dt>\n\n<dt>Campsite</dt>\n<dd>Some physical work, dealing with practical issues as they arise, gate duty, campsite patrols etc.  We need people who will enjoy keeping the campsite a safe and pleasant environment for our visitors.  Some late nights</dd>\n</dl>"
+                }
+              ]
+            },
+            {
+              "type": "dropdown",
+              "name": "teamPreference1",
+              "title": "First team preference",
+              "isRequired": true,
+              "choices": [
+                "Artiste accommodation",
+                "Bandstand",
+                "Bar",
+                "Box Office",
+                "Campsite",
+                "Campsite office",
+                "Children's Events",
+                "Collections",
+                "Craft Fair Venue",
+                "Merchandise Sales",
+                "Drivers",
+                "Concert Venue",
+                "Dance Venue",
+                "Lottery ticket sales",
+                "Sailing Club",
+                "Stage Management",
+                "PA Crew / roadies",
+                "Technical",
+                "Other"
+              ]
+            },
+            {
+              "type": "dropdown",
+              "name": "teamPreference2",
+              "title": "Second team preference",
+              "choicesFromQuestion": "teamPreference1",
+              "choicesVisibleIf": "{teamPreference1} != {item}"
+            },
+            {
+              "type": "dropdown",
+              "name": "teamPreference3",
+              "title": "Third team preference",
+              "choicesFromQuestion": "teamPreference1",
+              "choicesVisibleIf": "{teamPreference1} != {item} && {teamPreference2} != {item}"
+            },
+            {
+              "type": "panel",
+              "name": "dbs-disclosure",
+              "visibleIf": "{teamPreference1} = 'Children\\'s Events' or {teamPreference2} = 'Children\\'s Events' or {teamPreference3} = 'Children\\'s Events'",
+              "title": "DBS disclosure",
+              "description": "DBS disclosure information is required when applying to join the Children's Team",
+              "elements": [
+                {
+                  "type": "text",
+                  "name": "dbsDisclosureNumber",
+                  "title": "DBS disclosure number",
+                  "isRequired": true
+                },
+                {
+                  "type": "text",
+                  "name": "dbsDisclosureDate",
+                  "title": "DBS disclosure date",
+                  "isRequired": true,
+                  "inputType": "date"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "name": "constraints",
+          "title": "Please let us know if you would be unable to perform certain aspects of a role or if you would need extra support.",
+          "maxLength": 1000
+        },
+        {
+          "type": "text",
+          "name": "personsPreference",
+          "title": "Are there any people you would like to work with?",
+          "description": "If so, please provide their names."
+        },
+        {
+          "type": "boolean",
+          "name": "firstAidCertificate",
+          "title": "Do you have a current first aid certificate?"
+        },
+        {
+          "type": "text",
+          "name": "occupationOrSkills",
+          "title": "Occupation / transferable skills"
+        },
+        {
+          "type": "boolean",
+          "name": "camping",
+          "title": "Do you want to register for free camping?",
+          "defaultValue": "false"
+        },
+        {
+          "type": "dropdown",
+          "name": "tShirtSize",
+          "title": "T shirt size",
+          "isRequired": true,
+          "choices": ["S", "M", "L", "XL", "XXL"]
+        },
+        {
+          "type": "boolean",
+          "name": "whatsApp",
+          "title": "Can we add you to the workforce WhatsApp group?"
+        },
+        {
+          "type": "comment",
+          "name": "otherInformation",
+          "title": "Any other information you would like to tell us?",
+          "maxLength": 1000
+        },
+        {
+          "type": "panel",
+          "name": "terms-and-conditions",
+          "title": "Workforce Terms and Conditions",
+          "elements": [
+            {
+              "type": "html",
+              "name": "question1",
+              "html": "<a href=\"https://broadstairsfolkweek.org.uk/terms-and-conditions/\" target=\"_blank\">Click here to View workforce terms and conditions (opens in new tab)</a>"
+            },
+            {
+              "type": "boolean",
+              "name": "acceptedTermsAndConditions",
+              "title": "Do you accept the Workforce Terms and Conditions?",
+              "validators": [
+                {
+                  "type": "expression",
+                  "text": "This form can only be submitted if you have read and accepted the Workforce Terms and Conditions.",
+                  "expression": "{acceptedTermsAndConditions} = true"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "panel",
+          "name": "newlife-wills",
+          "title": "Sponsor: Newlife Wills",
+          "description": "NewLife Wills is a sponsor of Broadstairs Folk Week.",
+          "elements": [
+            {
+              "type": "html",
+              "name": "question2",
+              "html": "<a href=\"https://www.newlifewills.co.uk/\" target=\"_blank\">Click here for the Newlife Wills website (opens in new tab)</a>"
+            },
+            {
+              "type": "boolean",
+              "name": "consentNewlifeWills",
+              "title": "Would you be happy for Newlife Wills to get in touch with you to arrange your FREE consultation?"
+            },
+            {
+              "type": "boolean",
+              "name": "newlifeHaveWillInPlace",
+              "visibleIf": "{consentNewlifeWills} = true",
+              "title": "Do you have a Will currently in place?"
+            },
+            {
+              "type": "boolean",
+              "name": "newlifeHavePoaInPlace",
+              "visibleIf": "{consentNewlifeWills} = true",
+              "title": "Do you have Lasting Power of Attorney’s currently in place?"
+            },
+            {
+              "type": "boolean",
+              "name": "newlifeWantFreeReview",
+              "visibleIf": "{newlifeHavePoaInPlace} = true or {newlifeHaveWillInPlace} = true",
+              "title": "Would you like a FREE review to check everything is up to date?"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "showQuestionNumbers": "off",
+  "completeText": "Save"
+}
