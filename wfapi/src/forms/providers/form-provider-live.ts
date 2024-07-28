@@ -3,7 +3,7 @@ import { ModelProfileId } from "../../model/interfaces/profile";
 import {
   FormProviderId,
   FormProviderSubmissionId,
-  FormSpecId,
+  TemplateId,
   VerifiedFormSubmissionStatus,
 } from "../form";
 import { FormProvider, FormSpecNotFound } from "./form-provider";
@@ -20,7 +20,7 @@ const getCreatableFormSpecs =
 const getCreatableFormSpec =
   (providers: ProvidersType) =>
   (profileId: ModelProfileId) =>
-  (formSpecId: FormSpecId) =>
+  (formSpecId: TemplateId) =>
     getCreatableFormSpecs(providers)(profileId).pipe(
       Effect.andThen(Array.filter((formSpec) => formSpec.id === formSpecId)),
       Effect.andThen(Array.head),
@@ -29,7 +29,7 @@ const getCreatableFormSpec =
       )
     );
 
-const getFormSpec = (providers: ProvidersType) => (formSpecId: FormSpecId) =>
+const getFormSpec = (providers: ProvidersType) => (formSpecId: TemplateId) =>
   Effect.firstSuccessOf(
     providers.map((provider) => provider.getFormSpec(formSpecId))
   );
@@ -37,7 +37,7 @@ const getFormSpec = (providers: ProvidersType) => (formSpecId: FormSpecId) =>
 const createFormSubmission =
   (providers: ProvidersType) =>
   (profileId: ModelProfileId) =>
-  (formSpecId: FormSpecId, answers: unknown) =>
+  (formSpecId: TemplateId, answers: unknown) =>
     providers[0].createFormSubmission(profileId)(formSpecId, answers);
 
 const getActiveFormSubmissions =

@@ -3,15 +3,15 @@ import { ModelProfileId } from "../../model/interfaces/profile";
 import {
   FormProviderId,
   FormProviderSubmissionId,
-  FormSpec,
-  FormSpecId,
+  Template,
+  TemplateId,
   UnverifiedFormSubmission,
   VerifiedFormSubmissionStatus,
 } from "../form";
 import { FormSubmissionNotFound } from "../forms";
 
 export class FormSpecNotFound extends Data.TaggedClass("FormSpecNotFound")<{
-  readonly formSpecId: FormSpecId;
+  readonly formSpecId: TemplateId;
 }> {}
 
 export class FormProviderNotMatched extends Data.TaggedClass(
@@ -23,20 +23,20 @@ export class FormProvider extends Context.Tag("FormProvider")<
   {
     getCreatableFormSpecs: (
       profileId: ModelProfileId
-    ) => Effect.Effect<readonly FormSpec[]>;
+    ) => Effect.Effect<readonly Template[]>;
 
     getCreatableFormSpec: (
       profileId: ModelProfileId
-    ) => (formSpecId: FormSpecId) => Effect.Effect<FormSpec, FormSpecNotFound>;
+    ) => (formSpecId: TemplateId) => Effect.Effect<Template, FormSpecNotFound>;
 
     getFormSpec: (
-      formSpecId: FormSpecId
-    ) => Effect.Effect<FormSpec, FormSpecNotFound>;
+      formSpecId: TemplateId
+    ) => Effect.Effect<Template, FormSpecNotFound>;
 
     createFormSubmission: (
       profileId: ModelProfileId
     ) => (
-      formSpecId: FormSpecId,
+      formSpecId: TemplateId,
       answers: unknown
     ) => Effect.Effect<UnverifiedFormSubmission, never, never>;
 

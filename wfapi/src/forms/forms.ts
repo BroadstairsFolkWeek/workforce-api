@@ -7,29 +7,20 @@ import {
 } from "../services/profiles";
 import { ModelPersistedProfile } from "../model/interfaces/profile";
 import {
-  FormSpec,
-  FormSpecId,
-  FormSubmissionArchiveStatus,
+  Template,
+  TemplateId,
   FormSubmissionAction,
   FormSubmissionId,
   FormSubmissionWithSpecAndActions,
   UnverifiedFormSubmission,
-  UnverifiedFormSubmissionStatus,
-  VerifiedFormSubmissionStatus,
 } from "./form";
 import { FormProvider, FormSpecNotFound } from "./providers/form-provider";
-import {
-  determineFormSubmissionStatusFollowingRetraction,
-  isSubmissionStatusValidForFormSubmission,
-  verifyFormSubmission,
-  verifyFormSubmissions,
-} from "./form-validation";
+import { verifyFormSubmission, verifyFormSubmissions } from "./form-validation";
 import {
   addAvailableActions,
   applyActionToFormSubmission,
   FormActionResult,
 } from "./form-actions";
-import { profile } from "console";
 
 export class FormSubmissionNotFound extends Data.TaggedClass(
   "FormSubmissionNotFound"
@@ -49,7 +40,7 @@ class ActionFormSubmissionDeleted extends Data.TaggedClass(
 
 export type ActionFormResult = ActionResultStatusUpdated;
 
-const getFormSpecsForFormSpecIds = (formSpecIds: Set<FormSpecId>) =>
+const getFormSpecsForFormSpecIds = (formSpecIds: Set<TemplateId>) =>
   FormProvider.pipe(
     Effect.andThen((formProvider) =>
       Effect.forEach(formSpecIds, (formSpecId) =>
@@ -76,14 +67,14 @@ const getFormSpecsForForms = (
 };
 
 export const mergeSubmissionWithSpec =
-  (formSubmission: UnverifiedFormSubmission) => (formSpec: FormSpec) => ({
+  (formSubmission: UnverifiedFormSubmission) => (formSpec: Template) => ({
     ...formSubmission,
     formSpec,
   });
 
 const mergeSubmissionWithSpecs = (
   formSubmission: UnverifiedFormSubmission,
-  formSpecs: readonly FormSpec[]
+  formSpecs: readonly Template[]
 ) =>
   Array.findFirst(
     formSpecs,
@@ -99,7 +90,7 @@ const mergeSubmissionWithSpecs = (
 
 const mergeSubmissionsWithSpecs = (
   formSubmissions: readonly UnverifiedFormSubmission[],
-  formSpecs: readonly FormSpec[]
+  formSpecs: readonly Template[]
 ) =>
   Effect.forEach(formSubmissions, (formSubmission) =>
     mergeSubmissionWithSpecs(formSubmission, formSpecs)
@@ -265,7 +256,7 @@ export const getCreatableFormsByUserId = (userId: ModelUserId) =>
 
 export const createFormSubmissionForProfile =
   (profile: ModelPersistedProfile) =>
-  (formSpecId: FormSpecId) =>
+  (formSpecId: TemplateId) =>
   (answers: unknown) =>
     FormProvider.pipe(
       Effect.andThen((formProvider) =>
@@ -288,7 +279,7 @@ export const createFormSubmissionForProfile =
     );
 
 export const createFormSubmissionForUserId =
-  (userId: ModelUserId) => (formSpecId: FormSpecId) => (answers: unknown) =>
+  (userId: ModelUserId) => (formSpecId: TemplateId) => (answers: unknown) =>
     getProfileByUserId(userId).pipe(
       Effect.andThen((profile) =>
         createFormSubmissionForProfile(profile)(formSpecId)(answers)

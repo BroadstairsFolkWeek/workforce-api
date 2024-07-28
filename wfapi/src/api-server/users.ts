@@ -39,7 +39,7 @@ import { formsLayerLive } from "../contexts/forms-live";
 import { PostUsersResponse } from "./interfaces/users";
 import { deleteUser } from "../services/users";
 import {
-  FormSpecId,
+  TemplateId,
   FormSubmissionAction,
   FormSubmissionId,
 } from "../forms/form";
@@ -55,7 +55,7 @@ const deleteFormParamsSchema = putFormParamsSchema;
 
 const postCreatableFormParamsSchema = z.object({
   userId: z.string().brand("UserId"),
-  formSpecId: z.string().brand("FormSpecId"),
+  formSpecId: z.string().brand("TemplateId"),
 });
 
 const postUsersBodySchema = z.object({
@@ -317,7 +317,7 @@ usersApi.post(
       c.req.valid("param").userId
     );
 
-    const formSpecIdEffect = S.decodeUnknown(FormSpecId)(
+    const formSpecIdEffect = S.decodeUnknown(TemplateId)(
       c.req.valid("param").formSpecId
     );
 

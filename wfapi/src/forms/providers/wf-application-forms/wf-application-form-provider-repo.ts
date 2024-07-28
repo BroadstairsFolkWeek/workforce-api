@@ -26,8 +26,8 @@ import {
 import {
   FormProviderId,
   FormProviderSubmissionId,
-  FormSpec,
-  FormSpecId,
+  Template,
+  TemplateId,
   FormSubmissionId,
   UnverifiedFormSubmission,
   VerifiedFormSubmissionStatus,
@@ -247,7 +247,7 @@ const getActiveFormSubmissions =
       )
     );
 
-const getFormSpec = (formSpecId: FormSpecId) =>
+const getFormSpec = (formSpecId: TemplateId) =>
   formSpecId === workforceApplicationFormSpecId
     ? Effect.succeed(workforceApplicationFormSpec)
     : Effect.fail(new FormSpecNotFound({ formSpecId }));
@@ -256,7 +256,7 @@ const getCreatableFormSpecs =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
     getApplicationFormForProfileId(applicationsRepo)(profileId).pipe(
-      Effect.andThen(() => [] as FormSpec[]),
+      Effect.andThen(() => [] as Template[]),
       Effect.catchTag("ApplicationNotFound", () =>
         Effect.succeed([workforceApplicationFormSpec])
       )
@@ -265,7 +265,7 @@ const getCreatableFormSpecs =
 const getCreatableFormSpec =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
-  (formSpecId: FormSpecId) =>
+  (formSpecId: TemplateId) =>
     getCreatableFormSpecs(applicationsRepo)(profileId).pipe(
       Effect.andThen(Array.filter((formSpec) => formSpec.id === formSpecId)),
       Effect.andThen(Array.head),
@@ -277,7 +277,7 @@ const getCreatableFormSpec =
 const createFormSubmission =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
-  (formSpecId: FormSpecId, answers: unknown) =>
+  (formSpecId: TemplateId, answers: unknown) =>
     S.decodeUnknown(CreatableApplicationFormAnswers)(answers)
       .pipe(
         Effect.andThen((addableApplicationAnswers) =>

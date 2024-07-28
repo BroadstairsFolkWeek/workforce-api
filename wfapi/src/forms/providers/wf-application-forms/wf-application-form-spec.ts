@@ -1,8 +1,8 @@
 import {
   FormProviderId,
   FormProviderSpecId,
-  FormSpec,
-  FormSpecId,
+  Template,
+  TemplateId,
 } from "../../form";
 
 // Hardcoded survey specification representing the Workforce Application Form for 2024.
@@ -12,11 +12,11 @@ const workforceApplicationFormProviderSpecId = FormProviderSpecId.make(
   "WorkforceApplicationForm"
 );
 
-export const workforceApplicationFormSpecId = FormSpecId.make(
+export const workforceApplicationFormSpecId = TemplateId.make(
   "WorkforceApplicationForm"
 );
 
-export const workforceApplicationFormSpec: FormSpec = {
+export const workforceApplicationFormSpec: Template = {
   formProviderId: FormProviderId.make("wf-application-form-provider"),
   formProviderSpecId: workforceApplicationFormProviderSpecId,
   id: workforceApplicationFormSpecId,

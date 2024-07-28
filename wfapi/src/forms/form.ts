@@ -9,7 +9,7 @@ export type UserCreatableFormAction = S.Schema.Type<
   typeof UserCreatableFormAction
 >;
 
-const FormSpecRequirements = S.Struct({
+const TemplateRequirements = S.Struct({
   profileRequirements: S.Struct({
     firstName: S.optional(S.Boolean),
     surname: S.optional(S.Boolean),
@@ -21,24 +21,24 @@ const FormSpecRequirements = S.Struct({
   }),
 });
 
-export const FormSpecId = S.String.pipe(S.brand("FormSpecId"));
-export type FormSpecId = S.Schema.Type<typeof FormSpecId>;
+export const TemplateId = S.String.pipe(S.brand("TemplateId"));
+export type TemplateId = S.Schema.Type<typeof TemplateId>;
 
 export const FormProviderSpecId = S.String.pipe(S.brand("FormProviderSpecId"));
 export type FormProviderSpecId = S.Schema.Type<typeof FormProviderSubmissionId>;
 
-export const FormSpec = S.Struct({
+export const Template = S.Struct({
   formProviderId: FormProviderId,
   formProviderSpecId: FormProviderSpecId,
-  id: FormSpecId,
+  id: TemplateId,
   shortName: S.String,
   fullName: S.String,
   description: S.String,
   questions: S.Unknown,
-  requirements: FormSpecRequirements,
+  requirements: TemplateRequirements,
   status: S.Literal("draft", "active", "archived"),
 });
-export interface FormSpec extends S.Schema.Type<typeof FormSpec> {}
+export interface Template extends S.Schema.Type<typeof Template> {}
 
 export const FormProviderSubmissionId = S.String.pipe(
   S.brand("FormProviderSubmissionId")
@@ -92,7 +92,7 @@ export const UnverifiedFormSubmission = S.Struct({
   formProviderId: FormProviderId,
   formProviderSubmissionId: FormProviderSubmissionId,
   id: FormSubmissionId,
-  formSpecId: FormSpecId,
+  formSpecId: TemplateId,
   profileId: ModelProfileId,
   answers: S.Unknown,
   submissionStatus: UnverifiedFormSubmissionStatus,
@@ -105,7 +105,7 @@ export interface UnverifiedFormSubmission
 
 export const UnverifiedFormSubmissionWithSpec = S.Struct({
   ...UnverifiedFormSubmission.fields,
-  formSpec: FormSpec,
+  formSpec: Template,
 });
 export interface UnverifiedFormSubmissionWithSpec
   extends S.Schema.Type<typeof UnverifiedFormSubmissionWithSpec> {}
@@ -120,7 +120,7 @@ export interface FormSubmission extends S.Schema.Type<typeof FormSubmission> {}
 
 export const FormSubmissionWithSpec = S.Struct({
   ...FormSubmission.fields,
-  formSpec: FormSpec,
+  formSpec: Template,
 });
 
 export interface FormSubmissionWithSpec
