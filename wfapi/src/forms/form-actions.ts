@@ -48,7 +48,7 @@ const doSubmitAction =
         )(profile.profileId)(VerifiedFormSubmissionStatus.make("submitted"))
       ),
       Effect.andThen((submission) =>
-        mergeSubmissionWithSpec(submission)(formSubmission.formSpec)
+        mergeSubmissionWithSpec(submission)(formSubmission.template)
       ),
       Effect.andThen(
         (unverifiedFormSubmission) =>
@@ -71,7 +71,7 @@ const doRetractAction =
         )
       ),
       Effect.andThen((submission) =>
-        mergeSubmissionWithSpec(submission)(formSubmission.formSpec)
+        mergeSubmissionWithSpec(submission)(formSubmission.template)
       ),
       Effect.andThen(
         (unverifiedFormSubmission) =>

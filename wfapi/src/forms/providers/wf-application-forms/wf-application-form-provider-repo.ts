@@ -218,7 +218,7 @@ const getFormSubmissionForApplication =
         FormProviderSubmissionId.make(application.applicationId)
       ),
       id: Effect.succeed(FormSubmissionId.make(application.applicationId)),
-      formSpecId: Effect.succeed(workforceApplicationFormSpecId),
+      templateId: Effect.succeed(workforceApplicationFormSpecId),
       profileId: Effect.succeed(profileId),
       answers: getFormAnswersFromApplication(application),
       submissionStatus: Effect.succeed(

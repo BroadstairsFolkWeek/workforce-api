@@ -12,7 +12,7 @@ import { Effect } from "effect";
 const isFormAnswersValid = (
   formSubmission: UnverifiedFormSubmissionWithSpec
 ): boolean => {
-  const model = new SurveyModel(formSubmission.formSpec.questions);
+  const model = new SurveyModel(formSubmission.template.questions);
   model.data = formSubmission.answers;
 
   return model.validate(false, false);
@@ -20,7 +20,7 @@ const isFormAnswersValid = (
 
 const isProfileRequirementsMet = (
   profile: ModelPersistedProfile,
-  profileRequirements: UnverifiedFormSubmissionWithSpec["formSpec"]["requirements"]["profileRequirements"]
+  profileRequirements: UnverifiedFormSubmissionWithSpec["template"]["requirements"]["profileRequirements"]
 ): boolean => {
   if (profileRequirements.firstName && !profile.givenName) {
     return false;
@@ -53,7 +53,7 @@ const isRequirementsMet = (
 ): boolean => {
   return isProfileRequirementsMet(
     profile,
-    formSubmission.formSpec.requirements.profileRequirements
+    formSubmission.template.requirements.profileRequirements
   );
 };
 

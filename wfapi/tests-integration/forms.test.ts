@@ -18,7 +18,7 @@ test("BRITTLE: get active forms by profileid returns the existing Workforce Appl
   const result = await Effect.runPromise(runnable);
 
   expect(result).toHaveLength(1);
-  expect(result[0].formSpecId).toBe("WorkforceApplicationForm");
+  expect(result[0].templateId).toBe("WorkforceApplicationForm");
   console.log(JSON.stringify(result, null, 2));
 });
 

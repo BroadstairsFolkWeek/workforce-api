@@ -54,7 +54,7 @@ const getFormSpecsForForms = (
 ) => {
   // Get the unique set of formSpecIds from the form submissions
   const formSpecIds = new Set(
-    formSubmissions.map((formSubmission) => formSubmission.formSpecId)
+    formSubmissions.map((formSubmission) => formSubmission.templateId)
   );
   return getFormSpecsForFormSpecIds(formSpecIds).pipe(
     Effect.catchTags({
@@ -67,9 +67,9 @@ const getFormSpecsForForms = (
 };
 
 export const mergeSubmissionWithSpec =
-  (formSubmission: UnverifiedFormSubmission) => (formSpec: Template) => ({
+  (formSubmission: UnverifiedFormSubmission) => (template: Template) => ({
     ...formSubmission,
-    formSpec,
+    template,
   });
 
 const mergeSubmissionWithSpecs = (
@@ -78,12 +78,12 @@ const mergeSubmissionWithSpecs = (
 ) =>
   Array.findFirst(
     formSpecs,
-    (formSpec) => formSpec.id === formSubmission.formSpecId
+    (formSpec) => formSpec.id === formSubmission.templateId
   ).pipe(
     Effect.map(mergeSubmissionWithSpec(formSubmission)),
     Effect.catchTag("NoSuchElementException", () =>
       Effect.fail(
-        new FormSpecNotFound({ formSpecId: formSubmission.formSpecId })
+        new FormSpecNotFound({ formSpecId: formSubmission.templateId })
       )
     )
   );
@@ -168,7 +168,7 @@ export const updateFormSubmissionForProfile =
           ),
           Effect.andThen((updatedFormSubmission) =>
             mergeSubmissionWithSpec(updatedFormSubmission)(
-              existingFormSubmission.formSpec
+              existingFormSubmission.template
             )
           ),
           Effect.andThen(verifyFormSubmission(profile)),

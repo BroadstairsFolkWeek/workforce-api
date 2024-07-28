@@ -92,7 +92,7 @@ export const UnverifiedFormSubmission = S.Struct({
   formProviderId: FormProviderId,
   formProviderSubmissionId: FormProviderSubmissionId,
   id: FormSubmissionId,
-  formSpecId: TemplateId,
+  templateId: TemplateId,
   profileId: ModelProfileId,
   answers: S.Unknown,
   submissionStatus: UnverifiedFormSubmissionStatus,
@@ -105,7 +105,7 @@ export interface UnverifiedFormSubmission
 
 export const UnverifiedFormSubmissionWithSpec = S.Struct({
   ...UnverifiedFormSubmission.fields,
-  formSpec: Template,
+  template: Template,
 });
 export interface UnverifiedFormSubmissionWithSpec
   extends S.Schema.Type<typeof UnverifiedFormSubmissionWithSpec> {}
@@ -120,7 +120,7 @@ export interface FormSubmission extends S.Schema.Type<typeof FormSubmission> {}
 
 export const FormSubmissionWithSpec = S.Struct({
   ...FormSubmission.fields,
-  formSpec: Template,
+  template: Template,
 });
 
 export interface FormSubmissionWithSpec
