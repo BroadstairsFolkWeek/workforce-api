@@ -281,7 +281,7 @@
             {
               "type": "boolean",
               "name": "newlifeWantFreeReview",
-              "visibleIf": "{newlifeHavePoaInPlace} = true or {newlifeHaveWillInPlace} = true",
+              "visibleIf": "{consentNewlifeWills} = true and ({newlifeHavePoaInPlace} = true or {newlifeHaveWillInPlace} = true)",
               "title": "Would you like a FREE review to check everything is up to date?"
             }
           ]
