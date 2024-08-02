@@ -1,11 +1,8 @@
 import { Effect } from "effect";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  ModelCoreUserLogin,
-  ModelUserId,
-} from "../model/interfaces/user-login";
-import { ensureUserLogin, getUserLogin } from "./users";
+import { ModelUserId } from "../model/interfaces/user-login";
+import { getUser } from "./users";
 import { ProfilesRepository } from "../model/profiles-repository";
 import {
   ModelPersistedProfile,
@@ -18,6 +15,7 @@ import {
   getPhotoUrlsForPhotoId,
 } from "./photos";
 import { PhotosRepository } from "../model/photos-repository";
+import { initialiseAddableProfile } from "./profile";
 
 export class ProfileVersionMismatch {
   readonly _tag = "ProfileVersionMismatch";
@@ -93,21 +91,8 @@ const decorateProfile = (
 ): Effect.Effect<ProfileWithPhotoAndMetadata, never, PhotosRepository> =>
   addPhotoUrlsToProfile(profile).pipe(Effect.andThen(addMetadataToProfile));
 
-export const getProfileByUserId = (userId: ModelUserId) =>
-  getUserLogin(userId)
-    .pipe(
-      Effect.tap((userLogin) =>
-        Effect.logTrace(`Found login for user: ${userId}`, userLogin)
-      ),
-      Effect.andThen((userLogin) =>
-        ProfilesRepository.pipe(
-          Effect.andThen((repo) =>
-            repo.modelGetProfileByProfileId(userLogin.profileId)
-          )
-        )
-      )
-    )
-    .pipe(Effect.andThen(decorateProfile));
+const getProfileByUserId = (userId: ModelUserId) =>
+  getUser(userId).pipe(Effect.andThen((userLogin) => userLogin.profile));
 
 export const getProfileByProfileId = (profileId: ModelProfileId) =>
   ProfilesRepository.pipe(
@@ -119,35 +104,18 @@ export const getProfiles = () =>
     Effect.andThen((repo) => repo.modelGetProfiles())
   ).pipe(Effect.andThen(Effect.forEach(decorateProfile)));
 
-export const ensureProfileByUserLoginDetails = (user: ModelCoreUserLogin) =>
-  ensureUserLogin(user)(ModelProfileId.make(uuidv4()))
-    .pipe(
-      Effect.tap((userLogin) =>
-        Effect.logTrace(
-          `Found login for user: ${user.identityProviderUserId}`,
-          userLogin
-        )
-      ),
-      Effect.andThen((userLogin) =>
-        ProfilesRepository.pipe(
-          Effect.andThen((repo) =>
-            repo.modelGetProfileByProfileId(userLogin.profileId).pipe(
-              Effect.catchTag("ProfileNotFound", () =>
-                repo.modelCreateProfile({
-                  profileId: userLogin.profileId,
-                  email: user.email,
-                  displayName: user.displayName,
-                  givenName: user.givenName,
-                  surname: user.surname,
-                  version: 1,
-                })
-              )
-            )
-          )
+export const createProfile = (displayName: string, email: string) =>
+  ProfilesRepository.pipe(
+    Effect.andThen((repo) =>
+      repo.modelCreateProfile(
+        initialiseAddableProfile(
+          ModelProfileId.make(uuidv4()),
+          displayName,
+          email
         )
       )
     )
-    .pipe(Effect.andThen(decorateProfile));
+  ).pipe(Effect.andThen(decorateProfile));
 
 const updateProfileIfVersionMatches =
   (version: number, updates: ProfileUpdates) => (profile: ProfileWithPhoto) => {

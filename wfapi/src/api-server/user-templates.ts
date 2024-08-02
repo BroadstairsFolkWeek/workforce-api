@@ -38,7 +38,6 @@ userTemplatesApi.get("/", zValidator("param", userIdParamSchema), async (c) => {
     )
     .pipe(
       Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
-      Effect.catchTag("ProfileNotFound", () => Effect.succeed(c.json({}, 404))),
       Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500)))
     );
 
@@ -82,7 +81,6 @@ userTemplatesApi.post(
         Effect.catchTags({
           ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
-          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
           FormSpecNotFound: () => Effect.succeed(c.json({}, 404)),
           ParseError: () => Effect.succeed(c.json({}, 500)),
         })

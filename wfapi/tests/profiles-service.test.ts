@@ -5,7 +5,10 @@ import {
   ModelPersistedProfile,
   ModelProfileId,
 } from "../src/model/interfaces/profile";
-import { getProfileByUserId, setProfilePhoto } from "../src/services/profiles";
+import {
+  getProfileByProfileId,
+  setProfilePhoto,
+} from "../src/services/profiles";
 import {
   ModelPersistedUserLogin,
   ModelUserId,
@@ -20,9 +23,10 @@ const testProfileVersion = 1;
 const addedPhotoId = ModelPhotoId.make("addedPhotoId");
 
 const testUserLogin: ModelPersistedUserLogin = {
-  identityProviderUserId: testUserId,
+  id: testUserId,
   profileId: testProfileId,
   displayName: "Test User",
+  email: "TestEmail",
   dbId: 1,
   createdDate: new Date(),
   modifiedDate: new Date(),
@@ -81,7 +85,7 @@ test("Profiles service adds single photo URL to Profile when multiple photo Ids 
     mockUserLoginssRepository
   );
 
-  const program = getProfileByUserId(ModelUserId.make("userId"));
+  const program = getProfileByProfileId(testProfileId);
 
   const runnable = Effect.provide(program, mockLayers);
 
@@ -107,7 +111,7 @@ test("Profiles services extracts photo ID from combined photo ID for use in phot
     mockUserLoginssRepository
   );
 
-  const program = getProfileByUserId(ModelUserId.make("userId"));
+  const program = getProfileByProfileId(testProfileId);
 
   const runnable = Effect.provide(program, mockLayers);
 

@@ -27,10 +27,7 @@ const modelGetProfileGraphListItemByFilter = (filter: string) =>
     Effect.flatMap((listAccess) =>
       listAccess.getProfileGraphListItemsByFilter(filter)
     ),
-    Effect.head,
-    Effect.catchTag("NoSuchElementException", () =>
-      Effect.fail(new ProfileNotFound())
-    )
+    Effect.head
   );
 
 const modelGetProfileByFilter = (filter: string) =>
@@ -41,10 +38,20 @@ const modelGetProfileByFilter = (filter: string) =>
   );
 
 const modelGetProfileGraphListItemByProfileId = (profileId: ModelProfileId) =>
-  modelGetProfileGraphListItemByFilter(`fields/ProfileId eq '${profileId}'`);
+  modelGetProfileGraphListItemByFilter(
+    `fields/ProfileId eq '${profileId}'`
+  ).pipe(
+    Effect.catchTag("NoSuchElementException", () =>
+      Effect.fail(new ProfileNotFound({ profileId }))
+    )
+  );
 
 const modelGetProfileByProfileId = (profileId: ModelProfileId) => {
-  return modelGetProfileByFilter(`fields/ProfileId eq '${profileId}'`);
+  return modelGetProfileByFilter(`fields/ProfileId eq '${profileId}'`).pipe(
+    Effect.catchTag("NoSuchElementException", () =>
+      Effect.fail(new ProfileNotFound({ profileId }))
+    )
+  );
 };
 
 const getProfileListItemIdIdForProfileId = (profileId: ModelProfileId) =>

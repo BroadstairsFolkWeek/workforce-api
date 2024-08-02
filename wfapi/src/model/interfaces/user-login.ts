@@ -5,13 +5,11 @@ export const ModelUserId = S.String.pipe(S.brand("UserId"));
 export type ModelUserId = S.Schema.Type<typeof ModelUserId>;
 
 export const ModelCoreUserLogin = S.Struct({
-  displayName: S.propertySignature(S.String).pipe(S.fromKey("Title")),
-  givenName: S.optional(S.String).pipe(S.fromKey("GivenName")),
-  surname: S.optional(S.String).pipe(S.fromKey("Surname")),
-  email: S.optional(S.String).pipe(S.fromKey("Email")),
-  identityProviderUserId: S.propertySignature(ModelUserId).pipe(
+  id: S.propertySignature(ModelUserId).pipe(
     S.fromKey("IdentityProviderUserId")
   ),
+  displayName: S.propertySignature(S.String).pipe(S.fromKey("Title")),
+  email: S.propertySignature(S.String).pipe(S.fromKey("Email")),
 });
 export interface ModelCoreUserLogin
   extends S.Schema.Type<typeof ModelCoreUserLogin> {}

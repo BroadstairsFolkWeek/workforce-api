@@ -43,7 +43,6 @@ userFormsApi.get("/", zValidator("param", userIdParamSchema), async (c) => {
     )
     .pipe(
       Effect.catchTag("UnknownUser", () => Effect.succeed(c.json({}, 404))),
-      Effect.catchTag("ProfileNotFound", () => Effect.succeed(c.json({}, 404))),
       Effect.catchTag("ParseError", (e) => Effect.succeed(c.json({}, 500)))
     );
 
@@ -68,7 +67,6 @@ userFormsApi.put(
       .pipe(
         Effect.catchTags({
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
-          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
           ParseError: () => Effect.succeed(c.json({}, 500)),
         })
@@ -103,7 +101,6 @@ userFormsApi.delete(
       .pipe(
         Effect.catchTags({
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
-          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
           ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
         })
@@ -161,7 +158,6 @@ userFormsApi.post(
       .pipe(
         Effect.catchTags({
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
-          ProfileNotFound: () => Effect.succeed(c.json({}, 404)),
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
           UnprocessableFormAction: () => Effect.succeed(c.json({}, 422)),
           ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),

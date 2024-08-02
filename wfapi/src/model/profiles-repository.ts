@@ -1,4 +1,4 @@
-import { Effect, Context } from "effect";
+import { Effect, Context, Data } from "effect";
 import {
   ModelAddableProfile,
   ModelPersistedProfile,
@@ -6,9 +6,9 @@ import {
   ModelProfileUpdates,
 } from "./interfaces/profile";
 
-export class ProfileNotFound {
-  readonly _tag = "ProfileNotFound";
-}
+export class ProfileNotFound extends Data.TaggedClass("ProfileNotFound")<{
+  profileId: string;
+}> {}
 
 export class ProfilesRepository extends Context.Tag("ProfilesRepository")<
   ProfilesRepository,
