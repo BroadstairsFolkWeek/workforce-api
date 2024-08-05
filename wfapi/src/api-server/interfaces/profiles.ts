@@ -8,22 +8,20 @@ const ApiProfileMeta = S.Struct({
 
 export const ApiProfile = S.Struct({
   profileId: ModelProfileId,
-  email: S.optional(S.String),
+  email: S.String,
   displayName: S.String,
   givenName: S.optional(S.String),
   surname: S.optional(S.String),
   address: S.optional(S.String),
   telephone: S.optional(S.String),
-  version: S.Number,
   photoUrl: S.optional(S.String),
   photoThumbnailUrl: S.optional(S.String),
-  photoId: S.optional(S.String),
-  dbId: S.Number,
   meta: ApiProfileMeta,
+  version: S.Number,
 });
 
 export const ApiProfileUpdates = ApiProfile.pipe(
-  S.omit("profileId", "version", "dbId", "photoUrl", "photoId"),
+  S.omit("profileId", "version", "photoUrl"),
   S.partial
 );
 

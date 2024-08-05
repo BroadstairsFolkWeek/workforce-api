@@ -42,6 +42,7 @@ const mockPhotosRepository = Layer.succeed(PhotosRepository, {
 
 const createTestProfile = (photoIds: string[]): ModelPersistedProfile => ({
   profileId: testProfileId,
+  email: "Test Email",
   photoIds,
   displayName: "Test User",
   version: testProfileVersion,

@@ -6,7 +6,7 @@ export type ModelProfileId = S.Schema.Type<typeof ModelProfileId>;
 const ModelPhotoIds = S.split("\n");
 
 const ModelCoreProfile = S.Struct({
-  email: S.optional(S.String).pipe(S.fromKey("Email")),
+  email: S.propertySignature(S.String).pipe(S.fromKey("Email")),
   displayName: S.propertySignature(S.String).pipe(S.fromKey("Title")),
   givenName: S.optional(S.String).pipe(S.fromKey("GivenName")),
   surname: S.optional(S.String).pipe(S.fromKey("Surname")),
