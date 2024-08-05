@@ -87,7 +87,7 @@ test("Get list item promise rejects for an unknown list item id", async () => {
   }
 });
 
-test("Clear list item column by setting column to undefined", async () => {
+test("Clear list item column by setting column to null", async () => {
   const testSiteId = await getTestSiteId();
   const testListId = await getTestListId();
   const itemId = `${testConfig.GRAPH_LIST_ITEM_ID}`;
@@ -98,6 +98,5 @@ test("Clear list item column by setting column to undefined", async () => {
   );
   return graphClient.api(apiPath).patch({
     Telephone: null,
-    Version: null,
   }) as ListItem;
 });
