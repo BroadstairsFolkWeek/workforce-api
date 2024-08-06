@@ -59,7 +59,7 @@ const getOtherProfilePhotoData =
     if (photoRequired) {
       const data = profile.metadata.photoId;
       if (data) {
-        retVal.photo = data;
+        retVal.photoId = data;
       }
     }
 
