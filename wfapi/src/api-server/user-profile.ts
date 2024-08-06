@@ -30,16 +30,17 @@ userProfileApi.put(
 
     const program = Effect.tryPromise({
       try: () => c.req.json(),
-      catch: (e) => new ApiInvalidRequest(),
+      catch: (error) => new ApiInvalidRequest({ error }),
     })
       .pipe(
         Effect.andThen(S.decodeUnknown(UpdateProfileRequest)),
-        Effect.catchTag("ParseError", (e) =>
-          Effect.fail(new ApiInvalidRequest())
+        Effect.catchTag("ParseError", (error) =>
+          Effect.fail(new ApiInvalidRequest({ error }))
         ),
-        Effect.tapErrorTag("ApiInvalidRequest", () =>
+        Effect.tapErrorTag("ApiInvalidRequest", (e) =>
           Effect.logWarning(
-            "Error parsing JSON for user profile properties PUT request"
+            "Error parsing JSON for user profile properties PUT request",
+            e.error
           )
         )
       )

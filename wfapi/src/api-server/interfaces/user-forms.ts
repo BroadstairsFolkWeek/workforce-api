@@ -17,6 +17,10 @@ export const GetUserFormsResponse = S.Struct({
   data: S.Array(ApiUserForm),
 });
 
+export const UpdateUserFormRequest = S.Struct({
+  answers: S.Unknown,
+});
+
 export const UpdateUserFormResponse = S.Struct({
   data: ApiUserForm,
 });

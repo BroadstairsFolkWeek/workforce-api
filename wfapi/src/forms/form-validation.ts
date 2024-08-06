@@ -40,7 +40,7 @@ const isProfileRequirementsMet = (
   if (profileRequirements.email && !profile.email) {
     return false;
   }
-  if (profileRequirements.photo && !profile.metadata.photoRequired) {
+  if (profileRequirements.photo && profile.metadata.photoRequired) {
     return false;
   }
 

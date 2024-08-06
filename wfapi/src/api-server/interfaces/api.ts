@@ -1,3 +1,5 @@
 import { Data } from "effect";
 
-export class ApiInvalidRequest extends Data.TaggedClass("ApiInvalidRequest") {}
+export class ApiInvalidRequest extends Data.TaggedClass("ApiInvalidRequest")<{
+  error?: any;
+}> {}

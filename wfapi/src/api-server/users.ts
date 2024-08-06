@@ -24,9 +24,9 @@ const postUsersBodySchema = z.object({
 
 const usersApi = new Hono();
 
-usersApi.route("/:userId/profile/forms", userFormsApi);
+usersApi.route("/:userId/forms", userFormsApi);
 
-usersApi.route("/:userId/profile/creatableforms", userTemplatesApi);
+usersApi.route("/:userId/creatableforms", userTemplatesApi);
 
 usersApi.route("/:userId/profile", userProfileApi);
 

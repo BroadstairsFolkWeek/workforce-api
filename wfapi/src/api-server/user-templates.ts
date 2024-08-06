@@ -18,6 +18,7 @@ import { runWfApiEffect } from "./effect-runner";
 import { postCreatableFormParamsSchema } from "./interfaces/user-templates";
 import { TemplateId } from "../forms/form";
 import { ApiInvalidRequest } from "./interfaces/api";
+import { UserId } from "../interfaces/user";
 
 const userTemplatesApi = new Hono();
 
@@ -48,9 +49,7 @@ userTemplatesApi.post(
   "/:formSpecId/create",
   zValidator("param", postCreatableFormParamsSchema),
   async (c) => {
-    const userIdEffect = S.decodeUnknown(ModelUserId)(
-      c.req.valid("param").userId
-    );
+    const userIdEffect = S.decodeUnknown(UserId)(c.req.valid("param").userId);
 
     const formSpecIdEffect = S.decodeUnknown(TemplateId)(
       c.req.valid("param").formSpecId
@@ -58,10 +57,12 @@ userTemplatesApi.post(
 
     const decodedRequestBody = Effect.tryPromise({
       try: () => c.req.json(),
-      catch: () => new ApiInvalidRequest(),
+      catch: (error) => new ApiInvalidRequest({ error }),
     }).pipe(
       Effect.andThen(S.decodeUnknown(PostUserCreatableFormNewFormRequest)),
-      Effect.catchTag("ParseError", () => Effect.fail(new ApiInvalidRequest()))
+      Effect.catchTag("ParseError", (error) =>
+        Effect.fail(new ApiInvalidRequest({ error }))
+      )
     );
 
     const program = Effect.all([

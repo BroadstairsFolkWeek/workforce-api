@@ -18,11 +18,13 @@ import {
   GetUserFormsResponse,
   postFormParamsSchema,
   putFormParamsSchema,
+  UpdateUserFormRequest,
   UpdateUserFormResponse,
 } from "./interfaces/user-forms";
 import { runWfApiEffect } from "./effect-runner";
 import { FormSubmissionAction, FormSubmissionId } from "../forms/form";
 import { ApiInvalidRequest } from "./interfaces/api";
+import { UserId } from "../interfaces/user";
 
 const userFormsApi = new Hono();
 
@@ -50,15 +52,44 @@ userFormsApi.get("/", zValidator("param", userIdParamSchema), async (c) => {
 });
 
 userFormsApi.put(
-  "/:formSubmissionId",
+  "/:formSubmissionId/answers",
   zValidator("param", putFormParamsSchema),
   async (c) => {
-    const { userId, formSubmissionId } = c.req.valid("param");
-    const answers = await c.req.json();
+    const userIdEffect = S.decodeUnknown(UserId)(c.req.valid("param").userId);
 
-    const program = updateFormSubmissionForUserId(
-      FormSubmissionId.make(formSubmissionId)
-    )(answers)(ModelUserId.make(userId))
+    const formIdEffect = S.decodeUnknown(FormSubmissionId)(
+      c.req.valid("param").formSubmissionId
+    );
+
+    const decodedRequestBodyEffect = Effect.tryPromise({
+      try: () => c.req.json(),
+      catch: (error) => new ApiInvalidRequest({ error }),
+    })
+      .pipe(
+        Effect.andThen(S.decodeUnknown(UpdateUserFormRequest)),
+        Effect.catchTag("ParseError", (error) =>
+          Effect.fail(new ApiInvalidRequest({ error }))
+        )
+      )
+      .pipe(
+        Effect.tapErrorTag("ApiInvalidRequest", (e) =>
+          Effect.logWarning(
+            "Error parsing JSON body for user form answers PUT request",
+            e.error
+          )
+        )
+      );
+
+    const program = Effect.all([
+      userIdEffect,
+      formIdEffect,
+      decodedRequestBodyEffect,
+    ])
+      .pipe(
+        Effect.andThen(([userId, formId, requestBody]) =>
+          updateFormSubmissionForUserId(formId)(requestBody.answers)(userId)
+        )
+      )
       .pipe(
         Effect.andThen((formSubmission) => ({ data: formSubmission })),
         Effect.andThen(S.encode(UpdateUserFormResponse)),
@@ -66,6 +97,7 @@ userFormsApi.put(
       )
       .pipe(
         Effect.catchTags({
+          ApiInvalidRequest: () => Effect.succeed(c.json({}, 400)),
           UnknownUser: () => Effect.succeed(c.json({}, 404)),
           FormSubmissionNotFound: () => Effect.succeed(c.json({}, 404)),
           ParseError: () => Effect.succeed(c.json({}, 500)),
@@ -90,8 +122,8 @@ userFormsApi.delete(
 
     const program = Effect.all([userIdEffect, formSubmissionIdEffect])
       .pipe(
-        Effect.catchTag("ParseError", () =>
-          Effect.fail(new ApiInvalidRequest())
+        Effect.catchTag("ParseError", (error) =>
+          Effect.fail(new ApiInvalidRequest({ error }))
         ),
         Effect.andThen(([userId, formSubmissionId]) =>
           deleteFormSubmissionForUserId(formSubmissionId)(userId)
@@ -124,10 +156,12 @@ userFormsApi.post(
 
     const actionEffect = Effect.tryPromise({
       try: () => c.req.json(),
-      catch: () => new ApiInvalidRequest(),
+      catch: (error) => new ApiInvalidRequest({ error }),
     }).pipe(
       Effect.andThen(S.decodeUnknown(FormSubmissionAction)),
-      Effect.catchTag("ParseError", () => Effect.fail(new ApiInvalidRequest()))
+      Effect.catchTag("ParseError", (error) =>
+        Effect.fail(new ApiInvalidRequest({ error }))
+      )
     );
 
     const program = Effect.all([
@@ -136,8 +170,8 @@ userFormsApi.post(
       actionEffect,
     ])
       .pipe(
-        Effect.catchTag("ParseError", () =>
-          Effect.fail(new ApiInvalidRequest())
+        Effect.catchTag("ParseError", (error) =>
+          Effect.fail(new ApiInvalidRequest({ error }))
         ),
         Effect.andThen(([userId, formSubmissionId, action]) =>
           executeFormSubmissionActionForUserId(formSubmissionId)(userId)(action)
