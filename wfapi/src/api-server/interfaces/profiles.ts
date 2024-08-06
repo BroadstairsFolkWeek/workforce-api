@@ -37,6 +37,11 @@ export const GetProfileResponse = S.Struct({
   data: ApiProfile,
 });
 
+export const UpdateProfileRequest = S.Struct({
+  properties: ApiProfileUpdates,
+  applyToVersion: S.Number,
+});
+
 export const UpdateProfileResponse = S.Struct({
   data: ApiProfile,
 });
