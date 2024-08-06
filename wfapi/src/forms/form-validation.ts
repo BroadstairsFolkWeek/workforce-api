@@ -1,13 +1,13 @@
+import { Effect } from "effect";
+import { Schema } from "@effect/schema";
 import { SurveyModel } from "survey-core";
 
-import { ModelPersistedProfile } from "../model/interfaces/profile";
 import {
   FormSubmissionWithSpec,
   UnverifiedFormSubmissionWithSpec,
   VerifiedFormSubmissionStatus,
 } from "./form";
-import { Schema } from "@effect/schema";
-import { Effect } from "effect";
+import { Profile } from "../interfaces/profile";
 
 const isFormAnswersValid = (
   formSubmission: UnverifiedFormSubmissionWithSpec
@@ -19,7 +19,7 @@ const isFormAnswersValid = (
 };
 
 const isProfileRequirementsMet = (
-  profile: ModelPersistedProfile,
+  profile: Profile,
   profileRequirements: UnverifiedFormSubmissionWithSpec["template"]["requirements"]["profileRequirements"]
 ): boolean => {
   if (profileRequirements.firstName && !profile.givenName) {
@@ -40,7 +40,7 @@ const isProfileRequirementsMet = (
   if (profileRequirements.email && !profile.email) {
     return false;
   }
-  if (profileRequirements.photo && !(profile.photoIds || []).length) {
+  if (profileRequirements.photo && !profile.metadata.photoRequired) {
     return false;
   }
 
@@ -48,7 +48,7 @@ const isProfileRequirementsMet = (
 };
 
 const isRequirementsMet = (
-  profile: ModelPersistedProfile,
+  profile: Profile,
   formSubmission: UnverifiedFormSubmissionWithSpec
 ): boolean => {
   return isProfileRequirementsMet(
@@ -62,8 +62,7 @@ const isRequirementsMet = (
  * then the form is submittable.
  */
 const isFormSubmissionSubmittable =
-  (profile: ModelPersistedProfile) =>
-  (formSubmission: UnverifiedFormSubmissionWithSpec) =>
+  (profile: Profile) => (formSubmission: UnverifiedFormSubmissionWithSpec) =>
     isFormAnswersValid(formSubmission) &&
     isRequirementsMet(profile, formSubmission);
 
@@ -71,7 +70,7 @@ const isFormSubmissionSubmittable =
  * Determine the permitted statuses for a form submission.
  */
 const permittedFormSubmissionStatuses =
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (
     formSubmission: UnverifiedFormSubmissionWithSpec
   ): VerifiedFormSubmissionStatus[] => {
@@ -97,7 +96,7 @@ const permittedFormSubmissionStatuses =
 
 export const isSubmissionStatusValidForFormSubmission =
   (status: VerifiedFormSubmissionStatus) =>
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (formSubmission: UnverifiedFormSubmissionWithSpec): boolean => {
     return permittedFormSubmissionStatuses(profile)(formSubmission).some(
       (permittedStatus) => permittedStatus === status
@@ -105,7 +104,7 @@ export const isSubmissionStatusValidForFormSubmission =
   };
 
 export const determineFormSubmissionStatusFollowingRetraction =
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (formSubmission: FormSubmissionWithSpec): VerifiedFormSubmissionStatus => {
     const permittedStatuses =
       permittedFormSubmissionStatuses(profile)(formSubmission);
@@ -131,7 +130,7 @@ export const determineFormSubmissionStatusFollowingRetraction =
  * Given a form submission, form spec, and user's Profile, determine the submission status of the form.
  */
 export const determineFormSubmissionStatus =
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (
     formSubmission: UnverifiedFormSubmissionWithSpec
   ): VerifiedFormSubmissionStatus => {
@@ -199,7 +198,7 @@ const applyCrudStatusesToFormSubmission = (
  * assuming it has not already progressed to the submitted or accepted state.
  */
 export const verifyFormSubmission =
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (
     formSubmission: UnverifiedFormSubmissionWithSpec
   ): Effect.Effect<FormSubmissionWithSpec> => {
@@ -210,6 +209,6 @@ export const verifyFormSubmission =
   };
 
 export const verifyFormSubmissions =
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (formSubmissions: readonly UnverifiedFormSubmissionWithSpec[]) =>
     Effect.forEach(formSubmissions, verifyFormSubmission(profile));

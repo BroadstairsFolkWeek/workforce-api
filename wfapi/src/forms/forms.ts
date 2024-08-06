@@ -1,8 +1,6 @@
 import { Array, Data, Effect, Match, pipe } from "effect";
 
 import { ModelUserId } from "../model/interfaces/user-login";
-import { ProfileWithPhotoAndMetadata } from "../services/profiles";
-import { ModelPersistedProfile } from "../model/interfaces/profile";
 import {
   Template,
   TemplateId,
@@ -19,6 +17,8 @@ import {
   FormActionResult,
 } from "./form-actions";
 import { getUser } from "../services/users";
+import { UserId } from "../interfaces/user";
+import { Profile } from "../interfaces/profile";
 
 export class FormSubmissionNotFound extends Data.TaggedClass(
   "FormSubmissionNotFound"
@@ -94,10 +94,10 @@ const mergeSubmissionsWithSpecs = (
     mergeSubmissionWithSpecs(formSubmission, formSpecs)
   );
 
-export const getFormsByProfile = (profile: ModelPersistedProfile) =>
+export const getFormsByProfile = (profile: Profile) =>
   FormProvider.pipe(
     Effect.andThen((formProvider) =>
-      formProvider.getActiveFormSubmissions(profile.profileId)
+      formProvider.getActiveFormSubmissions(profile.id)
     ),
     Effect.andThen((formSubmissions) =>
       getFormSpecsForForms(formSubmissions).pipe(
@@ -116,7 +116,7 @@ export const getFormsByProfile = (profile: ModelPersistedProfile) =>
     })
   );
 
-export const getFormsByUserId = (userId: ModelUserId) =>
+export const getFormsByUserId = (userId: UserId) =>
   getUser(userId).pipe(
     Effect.andThen((userAndProfile) =>
       getFormsByProfile(userAndProfile.profile)
@@ -138,7 +138,7 @@ const getFormForUserId = (
     );
 
 const getFormSubmissionForProfile =
-  (formSubmissionId: FormSubmissionId) => (profile: ModelPersistedProfile) =>
+  (formSubmissionId: FormSubmissionId) => (profile: Profile) =>
     getFormsByProfile(profile)
       .pipe(
         Effect.andThen(Array.findFirst((form) => form.id === formSubmissionId))
@@ -153,7 +153,7 @@ const getFormSubmissionForProfile =
 export const updateFormSubmissionForProfile =
   (formSubmissionId: FormSubmissionId) =>
   (answers: unknown) =>
-  (profile: ProfileWithPhotoAndMetadata) =>
+  (profile: Profile) =>
     getFormSubmissionForProfile(formSubmissionId)(profile).pipe(
       Effect.andThen((existingFormSubmission) =>
         FormProvider.pipe(
@@ -161,10 +161,7 @@ export const updateFormSubmissionForProfile =
             formProvider.updateFormSubmissionByFormProviderSubmissionId(
               existingFormSubmission.formProviderId,
               existingFormSubmission.formProviderSubmissionId
-            )(profile.profileId)(
-              existingFormSubmission.submissionStatus,
-              answers
-            )
+            )(profile.id)(existingFormSubmission.submissionStatus, answers)
           ),
           Effect.andThen((updatedFormSubmission) =>
             mergeSubmissionWithSpec(updatedFormSubmission)(
@@ -187,8 +184,7 @@ export const updateFormSubmissionForUserId =
     );
 
 export const deleteFormSubmissionForProfile =
-  (formSubmissionId: FormSubmissionId) =>
-  (profile: ProfileWithPhotoAndMetadata) =>
+  (formSubmissionId: FormSubmissionId) => (profile: Profile) =>
     getFormSubmissionForProfile(formSubmissionId)(profile).pipe(
       Effect.andThen((formSubmission) =>
         FormProvider.pipe(
@@ -212,7 +208,7 @@ export const deleteFormSubmissionForUserId =
 export const executeFormSubmissionActionForProfile =
   (formSubmissionId: FormSubmissionId) =>
   (action: FormSubmissionAction) =>
-  (profile: ProfileWithPhotoAndMetadata) =>
+  (profile: Profile) =>
     getFormSubmissionForProfile(formSubmissionId)(profile).pipe(
       Effect.andThen(applyActionToFormSubmission(action)(profile)),
       Effect.andThen(
@@ -245,10 +241,10 @@ export const executeFormSubmissionActionForUserId =
       )
     );
 
-export const getCreatableFormsByProfile = (profile: ModelPersistedProfile) =>
+export const getCreatableFormsByProfile = (profile: Profile) =>
   FormProvider.pipe(
     Effect.andThen((formProvider) =>
-      formProvider.getCreatableFormSpecs(profile.profileId)
+      formProvider.getCreatableFormSpecs(profile.id)
     )
   );
 
@@ -259,17 +255,15 @@ export const getCreatableFormsByUserId = (userId: ModelUserId) =>
   );
 
 export const createFormSubmissionForProfile =
-  (profile: ModelPersistedProfile) =>
-  (formSpecId: TemplateId) =>
-  (answers: unknown) =>
+  (profile: Profile) => (formSpecId: TemplateId) => (answers: unknown) =>
     FormProvider.pipe(
       Effect.andThen((formProvider) =>
         formProvider
-          .getCreatableFormSpec(profile.profileId)(formSpecId)
+          .getCreatableFormSpec(profile.id)(formSpecId)
           .pipe(
             Effect.andThen((formSpec) =>
               formProvider
-                .createFormSubmission(profile.profileId)(formSpec.id, answers)
+                .createFormSubmission(profile.id)(formSpec.id, answers)
                 .pipe(
                   Effect.andThen((formSubmission) =>
                     mergeSubmissionWithSpec(formSubmission)(formSpec)

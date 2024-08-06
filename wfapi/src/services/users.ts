@@ -1,27 +1,47 @@
 import { Data, Effect } from "effect";
 import {
-  ModelCoreUserLogin,
+  ModelPersistedUserLogin,
   ModelUserId,
 } from "../model/interfaces/user-login";
 import { UserLoginRepository } from "../model/user-logins-repository";
-import { ModelProfileId } from "../model/interfaces/profile";
 import {
   createProfile,
   deleteProfileByUserId,
   getProfileByProfileId,
 } from "./profiles";
+import { User, UserAndProfile } from "../interfaces/user";
+import { ProfilesRepository } from "../model/profiles-repository";
+import { PhotosRepository } from "../model/photos-repository";
 
 export class UnknownUser extends Data.TaggedClass("UnknownUser")<{
   userId: string;
 }> {}
 
-export const getUser = (userId: ModelUserId) =>
+const modelUserToUser = (modelUser: ModelPersistedUserLogin): User => {
+  return {
+    id: modelUser.id,
+    displayName: modelUser.displayName,
+    email: modelUser.email,
+    metadata: {
+      profileId: modelUser.profileId,
+    },
+  };
+};
+
+export const getUser = (
+  userId: ModelUserId
+): Effect.Effect<
+  UserAndProfile,
+  UnknownUser,
+  UserLoginRepository | ProfilesRepository | PhotosRepository
+> =>
   UserLoginRepository.pipe(
     Effect.andThen((repo) =>
       repo.modelGetUserLoginByIdentityProviderUserId(userId)
     ),
+    Effect.andThen(modelUserToUser),
     Effect.andThen((user) =>
-      getProfileByProfileId(user.profileId).pipe(
+      getProfileByProfileId(user.metadata.profileId).pipe(
         Effect.andThen((profile) => Effect.succeed({ user, profile }))
       )
     )
@@ -49,7 +69,7 @@ const createUserAndProfile = (
               id: userId,
               displayName,
               email,
-              profileId: profile.profileId,
+              profileId: profile.id,
             })
             .pipe(Effect.andThen((user) => Effect.succeed({ user, profile })))
         )

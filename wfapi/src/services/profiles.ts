@@ -1,9 +1,11 @@
-import { Effect } from "effect";
+import { Array, Effect, Option } from "effect";
 import { v4 as uuidv4 } from "uuid";
 
-import { ModelUserId } from "../model/interfaces/user-login";
 import { getUser } from "./users";
-import { ProfilesRepository } from "../model/profiles-repository";
+import {
+  ProfileNotFound,
+  ProfilesRepository,
+} from "../model/profiles-repository";
 import {
   ModelPersistedProfile,
   ModelProfileId,
@@ -16,21 +18,11 @@ import {
 } from "./photos";
 import { PhotosRepository } from "../model/photos-repository";
 import { initialiseAddableProfile } from "./profile";
+import { Profile, ProfileId } from "../interfaces/profile";
+import { UserId } from "../interfaces/user";
 
 export class ProfileVersionMismatch {
   readonly _tag = "ProfileVersionMismatch";
-}
-
-interface ProfileWithPhoto extends ModelPersistedProfile {
-  photoUrl?: string;
-  photoThumbnailUrl?: string;
-}
-
-export interface ProfileWithPhotoAndMetadata extends ProfileWithPhoto {
-  meta: {
-    photoRequired: boolean;
-    profileInformationRequired: boolean;
-  };
 }
 
 interface ProfileUpdates
@@ -45,25 +37,6 @@ const photoIdFromEncodedPhotoId = (encodedPhotoId: string) => {
   }
 };
 
-const addPhotoUrlsToProfile = (
-  profile: ModelPersistedProfile
-): Effect.Effect<ProfileWithPhoto, never, PhotosRepository> => {
-  if (profile.photoIds && profile.photoIds.length > 0) {
-    const photoId = profile.photoIds[0];
-    return getPhotoUrlsForPhotoId(photoIdFromEncodedPhotoId(photoId)).pipe(
-      Effect.andThen((photoUrls) => {
-        return {
-          ...profile,
-          photoUrl: photoUrls.photoUrl.href,
-          photoThumbnailUrl: photoUrls.photoThumbnailUrl.href,
-        };
-      })
-    );
-  } else {
-    return Effect.succeed(profile);
-  }
-};
-
 const profileInformationMissing = (userProfile: ModelPersistedProfile) => {
   return (
     !userProfile.displayName ||
@@ -74,35 +47,75 @@ const profileInformationMissing = (userProfile: ModelPersistedProfile) => {
   );
 };
 
-const addMetadataToProfile = (
-  profile: ProfileWithPhoto
-): ProfileWithPhotoAndMetadata => {
-  return {
-    ...profile,
-    meta: {
-      photoRequired: !profile.photoUrl,
-      profileInformationRequired: profileInformationMissing(profile),
-    },
-  };
-};
-
-const decorateProfile = (
-  profile: ModelPersistedProfile
-): Effect.Effect<ProfileWithPhotoAndMetadata, never, PhotosRepository> =>
-  addPhotoUrlsToProfile(profile).pipe(Effect.andThen(addMetadataToProfile));
-
-const getProfileByUserId = (userId: ModelUserId) =>
+const getProfileByUserId = (userId: UserId) =>
   getUser(userId).pipe(Effect.andThen((userLogin) => userLogin.profile));
 
-export const getProfileByProfileId = (profileId: ModelProfileId) =>
-  ProfilesRepository.pipe(
-    Effect.andThen((repo) => repo.modelGetProfileByProfileId(profileId))
-  ).pipe(Effect.andThen(decorateProfile));
+const getProfilePhotoId = (profile: ModelPersistedProfile) =>
+  Array.head(profile.photoIds ?? []).pipe(
+    Option.andThen(photoIdFromEncodedPhotoId)
+  );
 
-export const getProfiles = () =>
+const getPhotoUrls = (profile: ModelPersistedProfile) =>
+  getProfilePhotoId(profile).pipe(Effect.andThen(getPhotoUrlsForPhotoId));
+
+const modelProfileToProfile = (
+  modelProfile: ModelPersistedProfile
+): Effect.Effect<Profile, never, PhotosRepository> =>
+  getPhotoUrls(modelProfile)
+    .pipe(
+      Effect.andThen((photoUrls) => ({
+        photoUrlHref: photoUrls.photoUrl.href,
+        photoThumbnailUrlHref: photoUrls.photoThumbnailUrl.href,
+      })),
+      Effect.option
+    )
+    .pipe(
+      Effect.andThen((hrefs) =>
+        Effect.succeed({
+          id: modelProfile.profileId,
+          displayName: modelProfile.displayName,
+          email: modelProfile.email,
+          givenName: modelProfile.givenName,
+          surname: modelProfile.surname,
+          address: modelProfile.address,
+          telephone: modelProfile.telephone,
+          metadata: {
+            version: modelProfile.version,
+            photoUrl: hrefs.pipe(
+              Option.map((hrefs) => hrefs.photoUrlHref),
+              Option.getOrUndefined
+            ),
+            photoThumbnailUrl: hrefs.pipe(
+              Option.map((hrefs) => hrefs.photoThumbnailUrlHref),
+              Option.getOrUndefined
+            ),
+            photoRequired: Option.isNone(hrefs),
+            profileInformationRequired: profileInformationMissing(modelProfile),
+          },
+        })
+      )
+    );
+
+export const getProfileByProfileId = (
+  profileId: ProfileId
+): Effect.Effect<
+  Profile,
+  ProfileNotFound,
+  ProfilesRepository | PhotosRepository
+> =>
+  ProfilesRepository.pipe(
+    Effect.andThen((repo) => repo.modelGetProfileByProfileId(profileId)),
+    Effect.andThen(modelProfileToProfile)
+  );
+
+export const getProfiles = (): Effect.Effect<
+  Profile[],
+  never,
+  PhotosRepository | ProfilesRepository
+> =>
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfiles())
-  ).pipe(Effect.andThen(Effect.forEach(decorateProfile)));
+  ).pipe(Effect.andThen(Effect.forEach(modelProfileToProfile)));
 
 export const createProfile = (displayName: string, email: string) =>
   ProfilesRepository.pipe(
@@ -115,14 +128,14 @@ export const createProfile = (displayName: string, email: string) =>
         )
       )
     )
-  ).pipe(Effect.andThen(decorateProfile));
+  ).pipe(Effect.andThen(modelProfileToProfile));
 
 const updateProfileIfVersionMatches =
-  (version: number, updates: ProfileUpdates) => (profile: ProfileWithPhoto) => {
-    if (profile.version === version) {
+  (version: number, updates: ProfileUpdates) => (profile: Profile) => {
+    if (profile.metadata.version === version) {
       return ProfilesRepository.pipe(
         Effect.andThen((repo) =>
-          repo.modelUpdateProfile(profile.profileId, {
+          repo.modelUpdateProfile(profile.id, {
             ...updates,
             version: version + 1,
           })
@@ -134,13 +147,14 @@ const updateProfileIfVersionMatches =
   };
 
 export const updateProfileByUserId =
-  (userId: ModelUserId, version: number) => (updates: ProfileUpdates) =>
-    getProfileByUserId(userId)
-      .pipe(Effect.andThen(updateProfileIfVersionMatches(version, updates)))
-      .pipe(Effect.andThen(decorateProfile));
+  (userId: UserId, version: number) => (updates: ProfileUpdates) =>
+    getProfileByUserId(userId).pipe(
+      Effect.andThen(updateProfileIfVersionMatches(version, updates)),
+      Effect.andThen(modelProfileToProfile)
+    );
 
 export const setProfilePhoto = (
-  userId: ModelUserId,
+  userId: UserId,
   mimeType: SupportedPhotoMimeType,
   content: Buffer
 ) =>
@@ -151,9 +165,9 @@ export const setProfilePhoto = (
           Effect.andThen((photoId) =>
             ProfilesRepository.pipe(
               Effect.andThen((repo) =>
-                repo.modelUpdateProfile(profile.profileId, {
+                repo.modelUpdateProfile(profile.id, {
                   photoIds: [photoId],
-                  version: profile.version + 1,
+                  version: profile.metadata.version + 1,
                 })
               )
             )
@@ -161,15 +175,13 @@ export const setProfilePhoto = (
         )
       )
     )
-    .pipe(Effect.andThen(decorateProfile));
+    .pipe(Effect.andThen(modelProfileToProfile));
 
-export const deleteProfileByUserId = (userId: ModelProfileId) =>
+export const deleteProfileByUserId = (userId: ProfileId) =>
   getProfileByProfileId(userId).pipe(
     Effect.andThen((profile) =>
       ProfilesRepository.pipe(
-        Effect.andThen((repo) =>
-          repo.modelDeleteProfileByProfileId(profile.profileId)
-        )
+        Effect.andThen((repo) => repo.modelDeleteProfileByProfileId(profile.id))
       )
     )
   );

@@ -1,5 +1,4 @@
 import { Array, Data, Effect, Match } from "effect";
-import { ModelPersistedProfile } from "../model/interfaces/profile";
 import {
   FormSubmissionAction,
   FormSubmissionWithSpec,
@@ -10,6 +9,7 @@ import {
 import { determineFormSubmissionStatusFollowingRetraction } from "./form-validation";
 import { FormProvider } from "./providers/form-provider";
 import { mergeSubmissionWithSpec } from "./forms";
+import { Profile } from "../interfaces/profile";
 
 export class UnprocessableFormAction extends Data.TaggedClass(
   "UnprocessableFormAction"
@@ -38,14 +38,13 @@ export const addAvailableActions = (
 };
 
 const doSubmitAction =
-  (profile: ModelPersistedProfile) =>
-  (formSubmission: FormSubmissionWithSpecAndActions) =>
+  (profile: Profile) => (formSubmission: FormSubmissionWithSpecAndActions) =>
     FormProvider.pipe(
       Effect.andThen((provider) =>
         provider.updateFormSubmissionStatusByFormProviderSubmissionId(
           formSubmission.formProviderId,
           formSubmission.formProviderSubmissionId
-        )(profile.profileId)(VerifiedFormSubmissionStatus.make("submitted"))
+        )(profile.id)(VerifiedFormSubmissionStatus.make("submitted"))
       ),
       Effect.andThen((submission) =>
         mergeSubmissionWithSpec(submission)(formSubmission.template)
@@ -57,14 +56,13 @@ const doSubmitAction =
     );
 
 const doRetractAction =
-  (profile: ModelPersistedProfile) =>
-  (formSubmission: FormSubmissionWithSpecAndActions) =>
+  (profile: Profile) => (formSubmission: FormSubmissionWithSpecAndActions) =>
     FormProvider.pipe(
       Effect.andThen((provider) =>
         provider.updateFormSubmissionStatusByFormProviderSubmissionId(
           formSubmission.formProviderId,
           formSubmission.formProviderSubmissionId
-        )(profile.profileId)(
+        )(profile.id)(
           determineFormSubmissionStatusFollowingRetraction(profile)(
             formSubmission
           )
@@ -81,7 +79,7 @@ const doRetractAction =
 
 export const applyActionToFormSubmission =
   (action: FormSubmissionAction) =>
-  (profile: ModelPersistedProfile) =>
+  (profile: Profile) =>
   (formSubmission: FormSubmissionWithSpecAndActions) =>
     Effect.succeed(action)
       .pipe(

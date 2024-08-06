@@ -1,27 +1,27 @@
 import { Schema as S } from "@effect/schema";
-import { ModelProfileId } from "../../model/interfaces/profile";
+import { ProfileId } from "../../interfaces/profile";
 
 const ApiProfileMeta = S.Struct({
   photoRequired: S.Boolean,
   profileInformationRequired: S.Boolean,
+  version: S.Number,
+  photoUrl: S.optional(S.String),
+  photoThumbnailUrl: S.optional(S.String),
 });
 
 export const ApiProfile = S.Struct({
-  profileId: ModelProfileId,
+  id: ProfileId,
   email: S.String,
   displayName: S.String,
   givenName: S.optional(S.String),
   surname: S.optional(S.String),
   address: S.optional(S.String),
   telephone: S.optional(S.String),
-  photoUrl: S.optional(S.String),
-  photoThumbnailUrl: S.optional(S.String),
-  meta: ApiProfileMeta,
-  version: S.Number,
+  metadata: ApiProfileMeta,
 });
 
 export const ApiProfileUpdates = ApiProfile.pipe(
-  S.omit("profileId", "version", "photoUrl"),
+  S.omit("id", "metadata"),
   S.partial
 );
 

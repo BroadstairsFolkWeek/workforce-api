@@ -92,7 +92,7 @@ test("Profiles service adds single photo URL to Profile when multiple photo Ids 
 
   const actual = Effect.runSync(runnable);
 
-  expect(actual.photoUrl).toBe(
+  expect(actual.metadata.photoUrl).toBe(
     new URL(`/photos/${testPhotoId}`, photoBaseUrl).href
   );
 });
@@ -118,7 +118,7 @@ test("Profiles services extracts photo ID from combined photo ID for use in phot
 
   const actual = Effect.runSync(runnable);
 
-  expect(actual.photoUrl).toBe(
+  expect(actual.metadata.photoUrl).toBe(
     new URL(`/photos/${testPhotoId}`, photoBaseUrl).href
   );
 });
@@ -143,6 +143,6 @@ test("Adding a new profile photo causes the photo ID to be applied to the profil
 
   const updatedProfile = Effect.runSync(runnable);
 
-  expect(updatedProfile.photoIds).toEqual([addedPhotoId]);
-  expect(updatedProfile.version).toEqual(testProfileVersion + 1);
+  expect(updatedProfile.metadata.photoUrl).toContain(addedPhotoId);
+  expect(updatedProfile.metadata.version).toEqual(testProfileVersion + 1);
 });
