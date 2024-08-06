@@ -24,16 +24,16 @@ export const workforceApplicationFormSpec: Template = {
   fullName: "Workforce Application Form 2024",
   description: "Workforce Application Form for BFW 2024.",
   questions: applicationFormQuestionsModel,
-  requirements: {
-    profileRequirements: {
-      firstName: true,
-      surname: true,
-      displayName: true,
-      address: true,
-      telephone: true,
-      email: true,
-      photo: true,
-    },
+  otherDataRequirements: {
+    profileRequirements: [
+      "givenName",
+      "surname",
+      "displayName",
+      "address",
+      "telephone",
+      "email",
+    ],
+    profilePhotoRequired: true,
   },
   status: "active",
 };

@@ -18,42 +18,49 @@ const isFormAnswersValid = (
   return model.validate(false, false);
 };
 
+const isProfileRequirementMet = (
+  profile: Profile,
+  profileRequirement: string
+): boolean => {
+  if (profileRequirement in profile) {
+    return !!profile[profileRequirement as keyof Profile];
+  } else {
+    return false;
+  }
+};
+
 const isProfileRequirementsMet = (
   profile: Profile,
-  profileRequirements: UnverifiedFormSubmissionWithSpec["template"]["requirements"]["profileRequirements"]
-): boolean => {
-  if (profileRequirements.firstName && !profile.givenName) {
-    return false;
-  }
-  if (profileRequirements.surname && !profile.surname) {
-    return false;
-  }
-  if (profileRequirements.displayName && !profile.displayName) {
-    return false;
-  }
-  if (profileRequirements.address && !profile.address) {
-    return false;
-  }
-  if (profileRequirements.telephone && !profile.telephone) {
-    return false;
-  }
-  if (profileRequirements.email && !profile.email) {
-    return false;
-  }
-  if (profileRequirements.photo && profile.metadata.photoRequired) {
-    return false;
-  }
+  profileRequirements: UnverifiedFormSubmissionWithSpec["template"]["otherDataRequirements"]["profileRequirements"]
+): boolean =>
+  profileRequirements.every((profileRequirement) =>
+    isProfileRequirementMet(profile, profileRequirement)
+  );
 
-  return true;
+const isProfilePhotoRequirementsMet = (
+  profile: Profile,
+  photoRequired: UnverifiedFormSubmissionWithSpec["template"]["otherDataRequirements"]["profilePhotoRequired"]
+): boolean => {
+  if (photoRequired) {
+    return !!profile.metadata.photoId;
+  } else {
+    return true;
+  }
 };
 
 const isRequirementsMet = (
   profile: Profile,
   formSubmission: UnverifiedFormSubmissionWithSpec
 ): boolean => {
-  return isProfileRequirementsMet(
-    profile,
-    formSubmission.template.requirements.profileRequirements
+  return (
+    isProfileRequirementsMet(
+      profile,
+      formSubmission.template.otherDataRequirements.profileRequirements
+    ) &&
+    isProfilePhotoRequirementsMet(
+      profile,
+      formSubmission.template.otherDataRequirements.profilePhotoRequired
+    )
   );
 };
 

@@ -60,7 +60,8 @@ export class FormProvider extends Context.Tag("FormProvider")<
     ) => (
       profileId: ModelProfileId
     ) => (
-      formSubmissionStatus: VerifiedFormSubmissionStatus
+      formSubmissionStatus: VerifiedFormSubmissionStatus,
+      otherData: unknown
     ) => Effect.Effect<UnverifiedFormSubmission, FormSubmissionNotFound, never>;
 
     deleteFormSubmissionByFormProviderSubmissionId: (

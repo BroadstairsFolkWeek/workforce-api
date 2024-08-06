@@ -3,6 +3,7 @@ import {
   FormSubmissionAction,
   FormSubmissionWithSpec,
   FormSubmissionWithSpecAndActions,
+  OtherDataRequirements,
   UnverifiedFormSubmissionWithSpec,
   VerifiedFormSubmissionStatus,
 } from "./form";
@@ -37,6 +38,48 @@ export const addAvailableActions = (
   return { ...formSubmission, availableActions: actions };
 };
 
+const getOtherProfileData =
+  (profile: Profile) =>
+  (profileRequirements: OtherDataRequirements["profileRequirements"]) => {
+    let retVal: any = {};
+    profileRequirements.forEach((requirement) => {
+      const data = (profile as any)[requirement];
+      if (data) {
+        retVal[requirement] = data;
+      }
+    });
+
+    return retVal;
+  };
+
+const getOtherProfilePhotoData =
+  (profile: Profile) =>
+  (photoRequired: OtherDataRequirements["profilePhotoRequired"]) => {
+    let retVal: any = {};
+    if (photoRequired) {
+      const data = profile.metadata.photoId;
+      if (data) {
+        retVal.photo = data;
+      }
+    }
+
+    return retVal;
+  };
+
+const getOtherData =
+  (profile: Profile) => (formSubmission: FormSubmissionWithSpec) => {
+    const templateRequirements = formSubmission.template.otherDataRequirements;
+
+    return {
+      profileData: getOtherProfileData(profile)(
+        templateRequirements.profileRequirements
+      ),
+      profilePhotoData: getOtherProfilePhotoData(profile)(
+        templateRequirements.profilePhotoRequired
+      ),
+    };
+  };
+
 const doSubmitAction =
   (profile: Profile) => (formSubmission: FormSubmissionWithSpecAndActions) =>
     FormProvider.pipe(
@@ -44,7 +87,10 @@ const doSubmitAction =
         provider.updateFormSubmissionStatusByFormProviderSubmissionId(
           formSubmission.formProviderId,
           formSubmission.formProviderSubmissionId
-        )(profile.id)(VerifiedFormSubmissionStatus.make("submitted"))
+        )(profile.id)(
+          VerifiedFormSubmissionStatus.make("submitted"),
+          getOtherData(profile)(formSubmission)
+        )
       ),
       Effect.andThen((submission) =>
         mergeSubmissionWithSpec(submission)(formSubmission.template)
@@ -65,7 +111,8 @@ const doRetractAction =
         )(profile.id)(
           determineFormSubmissionStatusFollowingRetraction(profile)(
             formSubmission
-          )
+          ),
+          formSubmission.otherData
         )
       ),
       Effect.andThen((submission) =>

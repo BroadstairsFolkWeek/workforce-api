@@ -9,19 +9,18 @@ import {
 import { FormProvider, FormSpecNotFound } from "./form-provider";
 import { WfApplicationFormProvider } from "./wf-application-forms/wf-application-form-provider";
 
-type ProvidersType = readonly Context.Tag.Service<FormProvider>[];
+type WfApplicationFormProviderType =
+  Context.Tag.Service<WfApplicationFormProvider>;
 
 const getCreatableFormSpecs =
-  (providers: ProvidersType) => (profileId: ModelProfileId) =>
-    Effect.all(
-      providers.map((provider) => provider.getCreatableFormSpecs(profileId))
-    ).pipe(Effect.andThen(Array.flatten));
+  (provider: WfApplicationFormProviderType) => (profileId: ModelProfileId) =>
+    provider.getCreatableFormSpecs(profileId);
 
 const getCreatableFormSpec =
-  (providers: ProvidersType) =>
+  (provider: WfApplicationFormProviderType) =>
   (profileId: ModelProfileId) =>
   (formSpecId: TemplateId) =>
-    getCreatableFormSpecs(providers)(profileId).pipe(
+    getCreatableFormSpecs(provider)(profileId).pipe(
       Effect.andThen(Array.filter((formSpec) => formSpec.id === formSpecId)),
       Effect.andThen(Array.head),
       Effect.catchTag("NoSuchElementException", () =>
@@ -29,56 +28,53 @@ const getCreatableFormSpec =
       )
     );
 
-const getFormSpec = (providers: ProvidersType) => (formSpecId: TemplateId) =>
-  Effect.firstSuccessOf(
-    providers.map((provider) => provider.getFormSpec(formSpecId))
-  );
+const getFormSpec =
+  (provider: WfApplicationFormProviderType) => (formSpecId: TemplateId) =>
+    provider.getFormSpec(formSpecId);
 
 const createFormSubmission =
-  (providers: ProvidersType) =>
+  (provider: WfApplicationFormProviderType) =>
   (profileId: ModelProfileId) =>
   (formSpecId: TemplateId, answers: unknown) =>
-    providers[0].createFormSubmission(profileId)(formSpecId, answers);
+    provider.createFormSubmission(profileId)(formSpecId, answers);
 
 const getActiveFormSubmissions =
-  (providers: ProvidersType) => (profileId: ModelProfileId) =>
-    Effect.all(
-      providers.map((provider) => provider.getActiveFormSubmissions(profileId))
-    ).pipe(Effect.andThen(Array.flatten));
+  (provider: WfApplicationFormProviderType) => (profileId: ModelProfileId) =>
+    provider.getActiveFormSubmissions(profileId);
 
 const updateFormSubmissionByFormProviderSubmissionId =
-  (providers: ProvidersType) =>
+  (provider: WfApplicationFormProviderType) =>
   (
     formProviderId: FormProviderId,
     formProviderSubmissionId: FormProviderSubmissionId
   ) =>
   (profileId: ModelProfileId) =>
   (formSubmissionStatus: VerifiedFormSubmissionStatus, answers: unknown) =>
-    providers[0].updateFormSubmissionByFormProviderSubmissionId(
+    provider.updateFormSubmissionByFormProviderSubmissionId(
       formProviderId,
       formProviderSubmissionId
     )(profileId)(formSubmissionStatus, answers);
 
 const updateFormSubmissionStatusByFormProviderSubmissionId =
-  (providers: ProvidersType) =>
+  (provider: WfApplicationFormProviderType) =>
   (
     formProviderId: FormProviderId,
     formProviderSubmissionId: FormProviderSubmissionId
   ) =>
   (profileId: ModelProfileId) =>
-  (formSubmissionStatus: VerifiedFormSubmissionStatus) =>
-    providers[0].updateFormSubmissionStatusByFormProviderSubmissionId(
+  (formSubmissionStatus: VerifiedFormSubmissionStatus, otherData: unknown) =>
+    provider.updateFormSubmissionStatusByFormProviderSubmissionId(
       formProviderId,
       formProviderSubmissionId
-    )(profileId)(formSubmissionStatus);
+    )(profileId)(formSubmissionStatus, otherData);
 
 const deleteFormSubmissionByFormProviderSubmissionId =
-  (providers: ProvidersType) =>
+  (provider: WfApplicationFormProviderType) =>
   (
     formProviderId: FormProviderId,
     formProviderSubmissionId: FormProviderSubmissionId
   ) =>
-    providers[0].deleteFormSubmissionByFormProviderSubmissionId(
+    provider.deleteFormSubmissionByFormProviderSubmissionId(
       formProviderId,
       formProviderSubmissionId
     );
@@ -86,7 +82,7 @@ const deleteFormSubmissionByFormProviderSubmissionId =
 export const formProviderLive = Layer.effect(
   FormProvider,
   Effect.all([WfApplicationFormProvider]).pipe(
-    Effect.andThen((providers) =>
+    Effect.andThen(([providers]) =>
       Effect.succeed({
         getActiveFormSubmissions: getActiveFormSubmissions(providers),
 

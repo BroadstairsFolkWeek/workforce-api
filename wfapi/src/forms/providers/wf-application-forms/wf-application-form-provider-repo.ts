@@ -221,6 +221,7 @@ const getFormSubmissionForApplication =
       templateId: Effect.succeed(workforceApplicationFormSpecId),
       profileId: Effect.succeed(profileId),
       answers: getFormAnswersFromApplication(application),
+      otherData: Effect.succeed(JSON.parse(application.otherData ?? "{}")),
       submissionStatus: Effect.succeed(
         getSubmissionStatusFromApplication(application)
       ),
@@ -338,10 +339,11 @@ const updateFormSubmissionStatusByFormProviderSubmissionId =
     formProviderSubmissionId: FormProviderSubmissionId
   ) =>
   (profileId: ModelProfileId) =>
-  (formSubmissionStatus: VerifiedFormSubmissionStatus) =>
+  (formSubmissionStatus: VerifiedFormSubmissionStatus, otherData: unknown) =>
     applicationsRepo
       .modelSaveApplicationStatus(formProviderSubmissionId)(
-        determineApplicationStatus(formSubmissionStatus)
+        determineApplicationStatus(formSubmissionStatus),
+        JSON.stringify(otherData)
       )
       .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)))
       .pipe(

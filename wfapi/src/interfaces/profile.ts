@@ -13,6 +13,7 @@ export const Profile = S.Struct({
   telephone: S.optional(S.String),
   metadata: S.Struct({
     version: S.Number,
+    photoId: S.optional(S.String),
     photoUrl: S.optional(S.String),
     photoThumbnailUrl: S.optional(S.String),
     photoRequired: S.Boolean,

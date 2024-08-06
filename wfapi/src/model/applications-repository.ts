@@ -41,7 +41,8 @@ export class ApplicationsRepository extends Context.Tag(
     readonly modelSaveApplicationStatus: (
       applicationId: string
     ) => (
-      status: ModelApplicationStatus
+      status: ModelApplicationStatus,
+      otherData: string
     ) => Effect.Effect<ModelPersistedApplication, ApplicationNotFound>;
 
     readonly modelDeleteApplicationByApplicationId: (

@@ -61,38 +61,46 @@ const getPhotoUrls = (profile: ModelPersistedProfile) =>
 const modelProfileToProfile = (
   modelProfile: ModelPersistedProfile
 ): Effect.Effect<Profile, never, PhotosRepository> =>
-  getPhotoUrls(modelProfile)
+  getProfilePhotoId(modelProfile)
+    .pipe(Effect.option)
     .pipe(
-      Effect.andThen((photoUrls) => ({
-        photoUrlHref: photoUrls.photoUrl.href,
-        photoThumbnailUrlHref: photoUrls.photoThumbnailUrl.href,
-      })),
-      Effect.option
-    )
-    .pipe(
-      Effect.andThen((hrefs) =>
-        Effect.succeed({
-          id: modelProfile.profileId,
-          displayName: modelProfile.displayName,
-          email: modelProfile.email,
-          givenName: modelProfile.givenName,
-          surname: modelProfile.surname,
-          address: modelProfile.address,
-          telephone: modelProfile.telephone,
-          metadata: {
-            version: modelProfile.version,
-            photoUrl: hrefs.pipe(
-              Option.map((hrefs) => hrefs.photoUrlHref),
-              Option.getOrUndefined
-            ),
-            photoThumbnailUrl: hrefs.pipe(
-              Option.map((hrefs) => hrefs.photoThumbnailUrlHref),
-              Option.getOrUndefined
-            ),
-            photoRequired: Option.isNone(hrefs),
-            profileInformationRequired: profileInformationMissing(modelProfile),
-          },
-        })
+      Effect.andThen((photoId) =>
+        getPhotoUrls(modelProfile)
+          .pipe(
+            Effect.andThen((photoUrls) => ({
+              photoUrlHref: photoUrls.photoUrl.href,
+              photoThumbnailUrlHref: photoUrls.photoThumbnailUrl.href,
+            })),
+            Effect.option
+          )
+          .pipe(
+            Effect.andThen((hrefs) =>
+              Effect.succeed({
+                id: modelProfile.profileId,
+                displayName: modelProfile.displayName,
+                email: modelProfile.email,
+                givenName: modelProfile.givenName,
+                surname: modelProfile.surname,
+                address: modelProfile.address,
+                telephone: modelProfile.telephone,
+                metadata: {
+                  version: modelProfile.version,
+                  photoId: Option.getOrUndefined(photoId),
+                  photoUrl: hrefs.pipe(
+                    Option.map((hrefs) => hrefs.photoUrlHref),
+                    Option.getOrUndefined
+                  ),
+                  photoThumbnailUrl: hrefs.pipe(
+                    Option.map((hrefs) => hrefs.photoThumbnailUrlHref),
+                    Option.getOrUndefined
+                  ),
+                  photoRequired: Option.isNone(hrefs),
+                  profileInformationRequired:
+                    profileInformationMissing(modelProfile),
+                },
+              })
+            )
+          )
       )
     );
 

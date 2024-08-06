@@ -9,17 +9,12 @@ export type UserCreatableFormAction = S.Schema.Type<
   typeof UserCreatableFormAction
 >;
 
-const TemplateRequirements = S.Struct({
-  profileRequirements: S.Struct({
-    firstName: S.optional(S.Boolean),
-    surname: S.optional(S.Boolean),
-    displayName: S.optional(S.Boolean),
-    address: S.optional(S.Boolean),
-    telephone: S.optional(S.Boolean),
-    email: S.optional(S.Boolean),
-    photo: S.optional(S.Boolean),
-  }),
+export const OtherDataRequirements = S.Struct({
+  profileRequirements: S.Array(S.String),
+  profilePhotoRequired: S.optional(S.Boolean),
 });
+export interface OtherDataRequirements
+  extends S.Schema.Type<typeof OtherDataRequirements> {}
 
 export const TemplateId = S.String.pipe(S.brand("TemplateId"));
 export type TemplateId = S.Schema.Type<typeof TemplateId>;
@@ -35,7 +30,7 @@ export const Template = S.Struct({
   fullName: S.String,
   description: S.String,
   questions: S.Unknown,
-  requirements: TemplateRequirements,
+  otherDataRequirements: OtherDataRequirements,
   status: S.Literal("draft", "active", "archived"),
 });
 export interface Template extends S.Schema.Type<typeof Template> {}
@@ -95,6 +90,7 @@ export const UnverifiedFormSubmission = S.Struct({
   templateId: TemplateId,
   profileId: ModelProfileId,
   answers: S.Unknown,
+  otherData: S.Unknown,
   submissionStatus: UnverifiedFormSubmissionStatus,
   archiveStatus: FormSubmissionArchiveStatus,
   createdDateTimeUtc: S.DateFromString,

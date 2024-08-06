@@ -143,6 +143,7 @@ export const ModelCoreApplication = S.Struct({
     S.fromKey("Status")
   ),
   title: S.propertySignature(S.String).pipe(S.fromKey("Title")),
+  otherData: S.optional(S.String).pipe(S.fromKey("OtherData")),
 });
 export interface ModelCoreApplication
   extends S.Schema.Type<typeof ModelCoreApplication> {}

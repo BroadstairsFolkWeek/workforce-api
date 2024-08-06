@@ -124,12 +124,13 @@ const saveApplicationChanges =
 const saveApplicationStatus =
   (listAccess: ListAccessService) =>
   (applicationId: string) =>
-  (status: ModelApplicationStatus) =>
+  (status: ModelApplicationStatus, otherData: string) =>
     getApplicationByApplicationId(listAccess)(applicationId).pipe(
       Effect.map((application) => application.dbId),
       Effect.andThen((dbId) =>
         listAccess.updateApplicationGraphListItemFields(dbId, {
           Status: status,
+          OtherData: otherData,
         })
       ),
       Effect.andThen(fieldsToApplication),
