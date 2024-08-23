@@ -9,7 +9,9 @@ test("BRITTLE: get active forms by profileid returns the existing Workforce Appl
     Config.string("TEST_PROFILE_ID"),
   ]).pipe(
     Effect.andThen(([formProvider, profileId]) =>
-      formProvider.getActiveFormSubmissions(ModelProfileId.make(profileId))
+      formProvider.getActiveFormSubmissionsByProfileId(
+        ModelProfileId.make(profileId)
+      )
     )
   );
 

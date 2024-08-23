@@ -35,5 +35,58 @@ export const workforceApplicationFormSpec: Template = {
     ],
     profilePhotoRequired: true,
   },
+  listItemLayout: {
+    _tag: "Group",
+    orientation: "horizontal",
+    items: [
+      {
+        _tag: "OtherDataProfile",
+        profileRequirement: "givenName",
+      },
+      {
+        _tag: "OtherDataProfile",
+        profileRequirement: "surname",
+      },
+    ],
+  },
+  detailsLayout: {
+    _tag: "Group",
+    orientation: "vertical",
+    items: [
+      {
+        _tag: "Group",
+        orientation: "horizontal",
+        items: [
+          {
+            _tag: "OtherDataProfile",
+            profileRequirement: "givenName",
+          },
+          {
+            _tag: "OtherDataProfile",
+            profileRequirement: "surname",
+          },
+        ],
+      },
+      {
+        _tag: "Answer",
+        questionId: "displayName",
+      },
+      {
+        _tag: "Answer",
+        questionId: "address",
+      },
+      {
+        _tag: "Answer",
+        questionId: "telephone",
+      },
+      {
+        _tag: "Answer",
+        questionId: "email",
+      },
+      {
+        _tag: "OtherDataProfilePhoto",
+      },
+    ],
+  },
   status: "active",
 };

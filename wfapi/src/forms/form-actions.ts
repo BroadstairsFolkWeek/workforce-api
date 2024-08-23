@@ -22,9 +22,9 @@ class FormActionResultStatusUpdated extends Data.TaggedClass(
 
 export type FormActionResult = FormActionResultStatusUpdated;
 
-export const addAvailableActions = (
+export const getAvailableFormActions = (
   formSubmission: FormSubmissionWithSpec
-): FormSubmissionWithSpecAndActions => {
+): FormSubmissionAction[] => {
   const actions: FormSubmissionAction[] = [];
 
   if (formSubmission.submissionStatus === "submittable") {
@@ -35,7 +35,16 @@ export const addAvailableActions = (
     actions.push("retract");
   }
 
-  return { ...formSubmission, availableActions: actions };
+  return actions;
+};
+
+export const addAvailableActions = <T extends FormSubmissionWithSpec>(
+  formSubmission: T
+) => {
+  return {
+    ...formSubmission,
+    availableActions: getAvailableFormActions(formSubmission),
+  };
 };
 
 const getOtherProfileData =
@@ -66,7 +75,7 @@ const getOtherProfilePhotoData =
     return retVal;
   };
 
-const getOtherData =
+export const getOtherData =
   (profile: Profile) => (formSubmission: FormSubmissionWithSpec) => {
     const templateRequirements = formSubmission.template.otherDataRequirements;
 

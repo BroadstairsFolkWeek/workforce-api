@@ -40,7 +40,13 @@ export class FormProvider extends Context.Tag("FormProvider")<
       answers: unknown
     ) => Effect.Effect<UnverifiedFormSubmission, never, never>;
 
-    getActiveFormSubmissions: (
+    getActiveForms: () => Effect.Effect<
+      readonly UnverifiedFormSubmission[],
+      never,
+      never
+    >;
+
+    getActiveFormSubmissionsByProfileId: (
       profileId: ModelProfileId
     ) => Effect.Effect<readonly UnverifiedFormSubmission[], never, never>;
 

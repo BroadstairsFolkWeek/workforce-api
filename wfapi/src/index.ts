@@ -1,4 +1,5 @@
 import * as restApi from "./api-server/server";
+import { runDataMigration } from "./migration/data.migration";
 
 restApi.serveRestApi(3000);
 
@@ -8,3 +9,5 @@ process.on("SIGINT", () => {
 process.on("SIGTERM", () => {
   restApi.stopRestApi();
 });
+
+runDataMigration();

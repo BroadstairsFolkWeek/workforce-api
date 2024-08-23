@@ -22,6 +22,27 @@ export type TemplateId = S.Schema.Type<typeof TemplateId>;
 export const FormProviderSpecId = S.String.pipe(S.brand("FormProviderSpecId"));
 export type FormProviderSpecId = S.Schema.Type<typeof FormProviderSubmissionId>;
 
+const NonRecursiveLayoutItem = S.Union(
+  S.TaggedStruct("Answer", { questionId: S.String }),
+  S.TaggedStruct("OtherDataProfilePhoto", {}),
+  S.TaggedStruct("OtherDataProfile", { profileRequirement: S.String })
+);
+
+type LayoutItem =
+  | S.Schema.Type<typeof NonRecursiveLayoutItem>
+  | {
+      _tag: "Group";
+      orientation: "horizontal" | "vertical";
+      items: readonly LayoutItem[];
+    };
+const LayoutItem = S.Union(
+  ...NonRecursiveLayoutItem.members,
+  S.TaggedStruct("Group", {
+    orientation: S.Literal("horizontal", "vertical"),
+    items: S.Array(S.suspend((): S.Schema<LayoutItem> => LayoutItem)),
+  })
+);
+
 export const Template = S.Struct({
   formProviderId: FormProviderId,
   formProviderSpecId: FormProviderSpecId,
@@ -32,6 +53,8 @@ export const Template = S.Struct({
   questions: S.Unknown,
   otherDataRequirements: OtherDataRequirements,
   status: S.Literal("draft", "active", "archived"),
+  listItemLayout: LayoutItem,
+  detailsLayout: LayoutItem,
 });
 export interface Template extends S.Schema.Type<typeof Template> {}
 
@@ -118,12 +141,13 @@ export const FormSubmissionWithSpec = S.Struct({
   ...FormSubmission.fields,
   template: Template,
 });
-
 export interface FormSubmissionWithSpec
   extends S.Schema.Type<typeof FormSubmissionWithSpec> {}
 
-export const FormSubmissionWithSpecAndActions = FormSubmissionWithSpec.pipe(
-  S.extend(S.Struct({ availableActions: S.Array(FormSubmissionAction) }))
-);
+export const FormSubmissionWithSpecAndActions = S.Struct({
+  ...FormSubmissionWithSpec.fields,
+  availableActions: S.Array(FormSubmissionAction),
+});
+
 export interface FormSubmissionWithSpecAndActions
   extends S.Schema.Type<typeof FormSubmissionWithSpecAndActions> {}

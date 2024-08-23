@@ -1,4 +1,4 @@
-import { Array, Effect, Option } from "effect";
+import { Array, Effect, HashMap, Option } from "effect";
 import { v4 as uuidv4 } from "uuid";
 
 import { getUser } from "./users";
@@ -124,6 +124,28 @@ export const getProfiles = (): Effect.Effect<
   ProfilesRepository.pipe(
     Effect.andThen((repo) => repo.modelGetProfiles())
   ).pipe(Effect.andThen(Effect.forEach(modelProfileToProfile)));
+
+export const getProfilesHashMapByProfileIds = (profileIds: Set<ProfileId>) =>
+  getProfiles()
+    .pipe(
+      Effect.andThen(Array.filter((profile) => profileIds.has(profile.id))),
+      Effect.andThen(Array.map((profile) => [profile.id, profile] as const)),
+      Effect.andThen(HashMap.fromIterable)
+    )
+    .pipe(
+      // Check for any missing profile ids.
+      Effect.tap((foundProfiles) =>
+        Array.findFirst(
+          profileIds,
+          (profileId) => !HashMap.has(profileId)(foundProfiles)
+        ).pipe(
+          Effect.andThen((missingProfileId) =>
+            Effect.fail(new ProfileNotFound({ profileId: missingProfileId }))
+          ),
+          Effect.catchTag("NoSuchElementException", () => Effect.succeedNone)
+        )
+      )
+    );
 
 export const createProfile = (displayName: string, email: string) =>
   ProfilesRepository.pipe(

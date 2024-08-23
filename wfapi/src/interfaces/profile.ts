@@ -21,3 +21,6 @@ export const Profile = S.Struct({
   }),
 });
 export interface Profile extends S.Schema.Type<typeof Profile> {}
+
+export const WithProfile = S.Struct({ profile: Profile });
+export interface WithProfile extends S.Schema.Type<typeof WithProfile> {}

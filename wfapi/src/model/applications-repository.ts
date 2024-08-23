@@ -17,6 +17,10 @@ export class ApplicationsRepository extends Context.Tag(
 )<
   ApplicationsRepository,
   {
+    readonly modelGetApplications: () => Effect.Effect<
+      ModelPersistedApplication[]
+    >;
+
     readonly modelGetApplicationByProfileId: (
       profileId: ModelProfileId
     ) => Effect.Effect<ModelPersistedApplication, ApplicationNotFound>;

@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect";
+import { Array, Context, Effect, Layer } from "effect";
 import { Schema } from "@effect/schema";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -33,18 +33,28 @@ const fieldsToApplication = (fields: PersistedGraphListItemFields) => {
   return Schema.decodeUnknown(ModelPersistedApplication)(itemWithDefaults);
 };
 
-const modelGetApplicationByFilter =
-  (listAccess: ListAccessService) => (filter: string) =>
+const modelGetApplicationsByFilter =
+  (listAccess: ListAccessService) => (filter?: string) =>
     listAccess.getApplicationGraphListItemsByFilter(filter).pipe(
-      Effect.head,
-      Effect.catchTag("NoSuchElementException", () =>
-        Effect.fail(new ApplicationNotFound())
-      ),
-      Effect.map((item) => item.fields),
-      Effect.flatMap((fields) => fieldsToApplication(fields)),
+      Effect.andThen(Array.map((item) => item.fields)),
+      Effect.andThen(Array.map((fields) => fieldsToApplication(fields))),
+      Effect.andThen(Effect.all),
       // Parse errors of data from Graph/SharePoint are considered unrecoverable.
       Effect.catchTag("ParseError", (e) => Effect.die(e))
     );
+
+const modelGetApplicationByFilter =
+  (listAccess: ListAccessService) => (filter: string) =>
+    modelGetApplicationsByFilter(listAccess)(filter).pipe(
+      Effect.head,
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(new ApplicationNotFound())
+      )
+    );
+
+const getApplications = (listAccess: ListAccessService) => () => {
+  return modelGetApplicationsByFilter(listAccess)();
+};
 
 const getApplicationByProfileId =
   (listAccess: ListAccessService) => (profileId: string) => {
@@ -150,6 +160,8 @@ export const applicationsRepositoryLive = Layer.effect(
   ApplicationsGraphListAccess.pipe(
     Effect.map((service) => ({
       modelCreateApplication: createApplication(service),
+
+      modelGetApplications: getApplications(service),
 
       modelGetApplicationByProfileId: getApplicationByProfileId(service),
 

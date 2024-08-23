@@ -1,4 +1,4 @@
-import { Array, Data, Effect, Match, pipe } from "effect";
+import { Array, Brand, Data, Effect, HashMap, Match } from "effect";
 
 import { ModelUserId } from "../model/interfaces/user-login";
 import {
@@ -10,15 +10,26 @@ import {
   UnverifiedFormSubmission,
 } from "./form";
 import { FormProvider, FormSpecNotFound } from "./providers/form-provider";
-import { verifyFormSubmission, verifyFormSubmissions } from "./form-validation";
+import {
+  verifyFormsAgainstProfiles,
+  verifyFormSubmissionAgainstProfile,
+  verifyFormSubmissionsAgainstProfile,
+} from "./form-validation";
 import {
   addAvailableActions,
   applyActionToFormSubmission,
   FormActionResult,
+  getAvailableFormActions,
 } from "./form-actions";
 import { getUser } from "../services/users";
 import { UserId } from "../interfaces/user";
-import { Profile } from "../interfaces/profile";
+import { Profile, WithProfile } from "../interfaces/profile";
+import { getProfilesHashMapByProfileIds } from "../services/profiles";
+import {
+  ProfileNotFound,
+  ProfilesRepository,
+} from "../model/profiles-repository";
+import { PhotosRepository } from "../model/photos-repository";
 
 export class FormSubmissionNotFound extends Data.TaggedClass(
   "FormSubmissionNotFound"
@@ -64,6 +75,21 @@ const getFormSpecsForForms = (
   );
 };
 
+const getProfilesForForms = (forms: readonly UnverifiedFormSubmission[]) => {
+  // Get the unique set of profile Ids from the forms
+  const profileIds = new Set(
+    forms.map((formSubmission) => formSubmission.profileId)
+  );
+  return getProfilesHashMapByProfileIds(profileIds).pipe(
+    Effect.catchTags({
+      ProfileNotFound: (e) =>
+        Effect.dieMessage(
+          `Data consistency error: Profile not found but is referenced by a Form: ${e.profileId}`
+        ),
+    })
+  );
+};
+
 export const mergeSubmissionWithSpec =
   (formSubmission: UnverifiedFormSubmission) => (template: Template) => ({
     ...formSubmission,
@@ -94,17 +120,39 @@ const mergeSubmissionsWithSpecs = (
     mergeSubmissionWithSpecs(formSubmission, formSpecs)
   );
 
+const mergeFormsWithProfilesAndSpecs = (
+  forms: readonly UnverifiedFormSubmission[],
+  formSpecs: readonly Template[],
+  profiles: HashMap.HashMap<string & Brand.Brand<"ProfileId">, Profile>
+) =>
+  Effect.forEach(forms, (form) =>
+    HashMap.get(profiles, form.profileId).pipe(
+      Effect.catchTag("NoSuchElementException", () =>
+        Effect.fail(new ProfileNotFound({ profileId: form.profileId }))
+      ),
+      Effect.andThen((profile) =>
+        mergeSubmissionWithSpecs(form, formSpecs).pipe(
+          Effect.andThen(verifyFormSubmissionAgainstProfile(profile)),
+          Effect.andThen((verifiedForm) => ({
+            ...verifiedForm,
+            profile,
+          }))
+        )
+      )
+    )
+  );
+
 export const getFormsByProfile = (profile: Profile) =>
   FormProvider.pipe(
     Effect.andThen((formProvider) =>
-      formProvider.getActiveFormSubmissions(profile.id)
+      formProvider.getActiveFormSubmissionsByProfileId(profile.id)
     ),
     Effect.andThen((formSubmissions) =>
       getFormSpecsForForms(formSubmissions).pipe(
         Effect.andThen((formSpecs) =>
           mergeSubmissionsWithSpecs(formSubmissions, formSpecs)
         ),
-        Effect.andThen(verifyFormSubmissions(profile)),
+        Effect.andThen(verifyFormSubmissionsAgainstProfile(profile)),
         Effect.andThen(Array.map(addAvailableActions))
       )
     ),
@@ -112,6 +160,46 @@ export const getFormsByProfile = (profile: Profile) =>
       FormSpecNotFound: (e) =>
         Effect.dieMessage(
           `Data consistency error: FormSpec not found but is referenced by a FormSubmission: ${e.formSpecId}`
+        ),
+    })
+  );
+
+export const getForms = (): Effect.Effect<
+  Array<FormSubmissionWithSpecAndActions & WithProfile>,
+  never,
+  FormProvider | PhotosRepository | ProfilesRepository
+> =>
+  FormProvider.pipe(
+    Effect.andThen((provider) => provider.getActiveForms())
+  ).pipe(
+    Effect.andThen((forms) =>
+      Effect.all([
+        getFormSpecsForForms(forms),
+        getProfilesForForms(forms),
+      ]).pipe(
+        Effect.andThen(([formSpecs, profilesMap]) =>
+          mergeFormsWithProfilesAndSpecs(forms, formSpecs, profilesMap).pipe(
+            Effect.andThen((mergedForms) =>
+              verifyFormsAgainstProfiles(mergedForms)
+            ),
+            Effect.andThen(
+              Array.map((f) => ({
+                ...f,
+                availableActions: getAvailableFormActions(f),
+              }))
+            )
+          )
+        )
+      )
+    ),
+    Effect.catchTags({
+      FormSpecNotFound: (e) =>
+        Effect.dieMessage(
+          `Data consistency error: FormSpec not found but is referenced by a FormSubmission: ${e.formSpecId}`
+        ),
+      ProfileNotFound: (e) =>
+        Effect.dieMessage(
+          `Data consistency error: Profile not found but is referenced by a Form: ${e.profileId}`
         ),
     })
   );
@@ -168,7 +256,7 @@ export const updateFormSubmissionForProfile =
               existingFormSubmission.template
             )
           ),
-          Effect.andThen(verifyFormSubmission(profile)),
+          Effect.andThen(verifyFormSubmissionAgainstProfile(profile)),
           Effect.andThen(addAvailableActions)
         )
       )
@@ -215,7 +303,7 @@ export const executeFormSubmissionActionForProfile =
         Match.type<FormActionResult>().pipe(
           Match.tag("FormActionResultStatusUpdated", (result) =>
             Effect.succeed(result.unverifiedFormSubmission).pipe(
-              Effect.andThen(verifyFormSubmission(profile)),
+              Effect.andThen(verifyFormSubmissionAgainstProfile(profile)),
               Effect.andThen(addAvailableActions),
               Effect.andThen(
                 (verfiedFormSubmission) =>
@@ -268,7 +356,7 @@ export const createFormSubmissionForProfile =
                   Effect.andThen((formSubmission) =>
                     mergeSubmissionWithSpec(formSubmission)(formSpec)
                   ),
-                  Effect.andThen(verifyFormSubmission(profile)),
+                  Effect.andThen(verifyFormSubmissionAgainstProfile(profile)),
                   Effect.andThen(addAvailableActions)
                 )
             )

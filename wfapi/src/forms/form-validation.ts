@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, HashMap } from "effect";
 import { Schema } from "@effect/schema";
 import { SurveyModel } from "survey-core";
 
@@ -7,7 +7,7 @@ import {
   UnverifiedFormSubmissionWithSpec,
   VerifiedFormSubmissionStatus,
 } from "./form";
-import { Profile } from "../interfaces/profile";
+import { Profile, WithProfile } from "../interfaces/profile";
 
 const isFormAnswersValid = (
   formSubmission: UnverifiedFormSubmissionWithSpec
@@ -162,31 +162,28 @@ export const determineFormSubmissionStatus =
     return VerifiedFormSubmissionStatus.make("draft");
   };
 
-const applyCrudStatusesToFormSubmission = (
-  formSubmission: Omit<
-    FormSubmissionWithSpec,
-    "answersModifiable" | "submissionDeletable"
-  >
-): FormSubmissionWithSpec => {
-  switch (formSubmission.submissionStatus) {
+const getCrudStatusesForSubmissionStatus = (
+  submissionStatus: FormSubmissionWithSpec["submissionStatus"]
+): {
+  answersModifiable: FormSubmissionWithSpec["answersModifiable"];
+  submissionDeletable: FormSubmissionWithSpec["submissionDeletable"];
+} => {
+  switch (submissionStatus) {
     case "draft":
     case "submittable":
       return {
-        ...formSubmission,
         answersModifiable: "modifiable",
         submissionDeletable: "deletable",
       };
 
     case "submitted":
       return {
-        ...formSubmission,
         answersModifiable: "locked",
         submissionDeletable: "deletable",
       };
 
     default:
       return {
-        ...formSubmission,
         answersModifiable: "locked",
         submissionDeletable: "not-deletable",
       };
@@ -204,18 +201,30 @@ const applyCrudStatusesToFormSubmission = (
  * If both validation rules and requirements are met, then the form can be considered submittable,
  * assuming it has not already progressed to the submitted or accepted state.
  */
-export const verifyFormSubmission =
-  (profile: Profile) =>
-  (
-    formSubmission: UnverifiedFormSubmissionWithSpec
-  ): Effect.Effect<FormSubmissionWithSpec> => {
+export const verifyFormSubmissionAgainstProfile =
+  (profile: Profile) => (formSubmission: UnverifiedFormSubmissionWithSpec) => {
+    const submissionStatus =
+      determineFormSubmissionStatus(profile)(formSubmission);
+
     return Effect.succeed({
       ...formSubmission,
-      submissionStatus: determineFormSubmissionStatus(profile)(formSubmission),
-    }).pipe(Effect.andThen(applyCrudStatusesToFormSubmission));
+      submissionStatus,
+      ...getCrudStatusesForSubmissionStatus(submissionStatus),
+      profile,
+    });
   };
 
-export const verifyFormSubmissions =
+export const verifyFormSubmissionsAgainstProfile =
   (profile: Profile) =>
   (formSubmissions: readonly UnverifiedFormSubmissionWithSpec[]) =>
-    Effect.forEach(formSubmissions, verifyFormSubmission(profile));
+    Effect.forEach(
+      formSubmissions,
+      verifyFormSubmissionAgainstProfile(profile)
+    );
+
+export const verifyFormsAgainstProfiles = (
+  forms: readonly (UnverifiedFormSubmissionWithSpec & WithProfile)[]
+) =>
+  Effect.forEach(forms, (form) =>
+    verifyFormSubmissionAgainstProfile(form.profile)(form)
+  );

@@ -230,6 +230,20 @@ const getFormSubmissionForApplication =
       modifiedDateTimeUtc: Effect.succeed(new Date(application.lastSaved)),
     });
 
+const getApplicationForms = (
+  applicationsRepo: Context.Tag.Service<ApplicationsRepository>
+) =>
+  applicationsRepo
+    .modelGetApplications()
+    .pipe(
+      Effect.andThen(
+        Array.map((application) =>
+          getFormSubmissionForApplication(application.profileId)(application)
+        )
+      ),
+      Effect.andThen(Effect.all)
+    );
+
 const getApplicationFormForProfileId =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
@@ -237,7 +251,13 @@ const getApplicationFormForProfileId =
       .modelGetApplicationByProfileId(profileId)
       .pipe(Effect.andThen(getFormSubmissionForApplication(profileId)));
 
-const getActiveFormSubmissions =
+const getActiveForms =
+  (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) => () =>
+    getApplicationForms(applicationsRepo).pipe(
+      Effect.andThen(Array.filter((form) => form.archiveStatus == "active"))
+    );
+
+const getActiveFormSubmissionsByProfileId =
   (applicationsRepo: Context.Tag.Service<ApplicationsRepository>) =>
   (profileId: ModelProfileId) =>
     getApplicationFormForProfileId(applicationsRepo)(profileId).pipe(
@@ -373,9 +393,10 @@ export const wfApplicationFormProviderLive = Layer.effect(
       WfApplicationFormProvider.of({
         createFormSubmission: createFormSubmission(applicationsRepository),
 
-        getActiveFormSubmissions: getActiveFormSubmissions(
-          applicationsRepository
-        ),
+        getActiveForms: getActiveForms(applicationsRepository),
+
+        getActiveFormSubmissionsByProfileId:
+          getActiveFormSubmissionsByProfileId(applicationsRepository),
 
         getFormSpec,
 

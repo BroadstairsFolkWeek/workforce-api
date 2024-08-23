@@ -38,9 +38,12 @@ const createFormSubmission =
   (formSpecId: TemplateId, answers: unknown) =>
     provider.createFormSubmission(profileId)(formSpecId, answers);
 
-const getActiveFormSubmissions =
+const getActiveForms = (provider: WfApplicationFormProviderType) => () =>
+  provider.getActiveForms();
+
+const getActiveFormSubmissionsByProfileId =
   (provider: WfApplicationFormProviderType) => (profileId: ModelProfileId) =>
-    provider.getActiveFormSubmissions(profileId);
+    provider.getActiveFormSubmissionsByProfileId(profileId);
 
 const updateFormSubmissionByFormProviderSubmissionId =
   (provider: WfApplicationFormProviderType) =>
@@ -84,7 +87,10 @@ export const formProviderLive = Layer.effect(
   Effect.all([WfApplicationFormProvider]).pipe(
     Effect.andThen(([providers]) =>
       Effect.succeed({
-        getActiveFormSubmissions: getActiveFormSubmissions(providers),
+        getActiveForms: getActiveForms(providers),
+
+        getActiveFormSubmissionsByProfileId:
+          getActiveFormSubmissionsByProfileId(providers),
 
         getCreatableFormSpec: getCreatableFormSpec(providers),
 
