@@ -10,7 +10,7 @@ export type UserCreatableFormAction = S.Schema.Type<
 >;
 
 export const OtherDataRequirements = S.Struct({
-  profileRequirements: S.optional(S.Array(S.String)),
+  profileRequirements: S.Array(S.String),
   profilePhotoRequired: S.optional(S.Boolean),
 });
 export interface OtherDataRequirements
