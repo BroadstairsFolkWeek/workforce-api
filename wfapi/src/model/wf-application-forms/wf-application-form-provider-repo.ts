@@ -7,8 +7,8 @@
  */
 
 import { Array, Context, Effect, Layer, pipe } from "effect";
-import { ModelProfileId } from "../../../model/interfaces/profile";
-import { ApplicationsRepository } from "../../../model/applications-repository";
+import { ModelProfileId } from "../interfaces/profile";
+import { ApplicationsRepository } from "../applications-repository";
 import { Schema as S } from "@effect/schema";
 import {
   ModelAgeGroup,
@@ -16,9 +16,9 @@ import {
   ModelCoreApplication,
   ModelPersistedApplication,
   ModelTShirtSize,
-} from "../../../model/interfaces/application";
+} from "../interfaces/application";
 import { ParseError } from "@effect/schema/ParseResult";
-import { FormSpecNotFound } from "../form-provider";
+import { FormSpecNotFound } from "../forms-repository";
 import {
   workforceApplicationFormSpec,
   workforceApplicationFormSpecId,
@@ -31,9 +31,9 @@ import {
   FormSubmissionId,
   UnverifiedFormSubmission,
   VerifiedFormSubmissionStatus,
-} from "../../form";
+} from "../../interfaces/form";
 import { WfApplicationFormProvider } from "./wf-application-form-provider";
-import { FormSubmissionNotFound } from "../../forms";
+import { FormSubmissionNotFound } from "../../forms/forms";
 
 const DaysAvailableDay = S.Literal(
   "day1",

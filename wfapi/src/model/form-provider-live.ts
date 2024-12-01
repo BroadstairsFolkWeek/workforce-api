@@ -1,12 +1,12 @@
 import { Array, Context, Effect, Layer } from "effect";
-import { ModelProfileId } from "../../model/interfaces/profile";
+import { ModelProfileId } from "./interfaces/profile";
 import {
   FormProviderId,
   FormProviderSubmissionId,
   TemplateId,
   VerifiedFormSubmissionStatus,
-} from "../form";
-import { FormProvider, FormSpecNotFound } from "./form-provider";
+} from "../interfaces/form";
+import { FormsRepository, FormSpecNotFound } from "./forms-repository";
 import { WfApplicationFormProvider } from "./wf-application-forms/wf-application-form-provider";
 
 type WfApplicationFormProviderType =
@@ -82,8 +82,8 @@ const deleteFormSubmissionByFormProviderSubmissionId =
       formProviderSubmissionId
     );
 
-export const formProviderLive = Layer.effect(
-  FormProvider,
+export const formsRepositoryLive = Layer.effect(
+  FormsRepository,
   Effect.all([WfApplicationFormProvider]).pipe(
     Effect.andThen(([providers]) =>
       Effect.succeed({

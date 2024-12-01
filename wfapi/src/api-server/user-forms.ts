@@ -22,7 +22,7 @@ import {
   UpdateUserFormResponse,
 } from "./interfaces/user-forms";
 import { runWfApiEffect } from "./effect-runner";
-import { FormSubmissionAction, FormSubmissionId } from "../forms/form";
+import { FormSubmissionAction, FormSubmissionId } from "../interfaces/form";
 import { ApiInvalidRequest } from "./interfaces/api";
 import { UserId } from "../interfaces/user";
 

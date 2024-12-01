@@ -1,5 +1,5 @@
 import { Schema as S } from "@effect/schema";
-import { FormSubmissionWithSpecAndActions } from "../../forms/form";
+import { FormSubmissionWithSpecAndActions } from "../../interfaces/form";
 import { WithProfile } from "../../interfaces/profile";
 
 const ApiForm = S.Struct({

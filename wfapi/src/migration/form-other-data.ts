@@ -2,11 +2,11 @@ import { Array, Effect } from "effect";
 import { runWfApiEffect } from "../api-server/effect-runner";
 import { getForms } from "../forms/forms";
 import { getOtherData } from "../forms/form-actions";
-import { FormProvider } from "../forms/providers/form-provider";
+import { FormsRepository } from "../model/forms-repository";
 
 // Update the 'other data' on forms according to the associated profile.
 export const setFormOtherData = async () => {
-  const program = FormProvider.pipe(
+  const program = FormsRepository.pipe(
     Effect.andThen((formProvider) =>
       getForms().pipe(
         Effect.tap((forms) =>
@@ -16,6 +16,11 @@ export const setFormOtherData = async () => {
         Effect.andThen(
           Array.filter(
             (form) => Object.keys(form.otherData as any).length === 0
+          )
+        ),
+        Effect.tap((forms) =>
+          Effect.logTrace(
+            `setFormOtherData: Migrating otherData for ${forms.length} forms`
           )
         ),
         Effect.andThen(

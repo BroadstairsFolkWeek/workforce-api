@@ -1,25 +1,15 @@
-import {
-  FormProviderId,
-  FormProviderSpecId,
-  Template,
-  TemplateId,
-} from "../../form";
+import { Template, TemplateId } from "../../interfaces/form";
 
 // Hardcoded survey specification representing the Workforce Application Form for 2024.
 import applicationFormQuestionsModel from "./wf-application-form-questions.json";
 
-const workforceApplicationFormProviderSpecId = FormProviderSpecId.make(
-  "WorkforceApplicationForm"
-);
-
 export const workforceApplicationFormSpecId = TemplateId.make(
-  "WorkforceApplicationForm"
+  "e590cd86-f639-4211-9520-90330a04559a"
 );
 
 export const workforceApplicationFormSpec: Template = {
-  formProviderId: FormProviderId.make("wf-application-form-provider"),
-  formProviderSpecId: workforceApplicationFormProviderSpecId,
   id: workforceApplicationFormSpecId,
+  version: 1,
   shortName: "WF 2024",
   fullName: "Workforce Application Form 2024",
   description: "Workforce Application Form for BFW 2024.",
@@ -34,6 +24,9 @@ export const workforceApplicationFormSpec: Template = {
       "email",
     ],
     profilePhotoRequired: true,
+  },
+  constraints: {
+    maxFormsPerProfile: 1,
   },
   listItemLayout: {
     _tag: "Group",

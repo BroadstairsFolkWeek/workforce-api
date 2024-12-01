@@ -42,6 +42,8 @@ param workforceProfilesListGuid string
 param workforceLoginsListGuid string
 @description('GUID of the Workforce Applications list in the Workforce SharePoint site')
 param wfApplicationsListGuid string
+@description('GUID of the Workforce Templates list in the Workforce SharePoint site')
+param wfTemplatesListGuid string
 
 @description('Title of the Workforce Photos list in the Workforce SharePoint site')
 param workforcePhotosListTitle string = 'Workforce Photos'
@@ -121,6 +123,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
         { name: 'workforce-photos-list-title', value: workforcePhotosListTitle }
         { name: 'wf-photos-service-base-url', value: wfPhotosServiceBaseUrl }
         { name: 'workforce-applications-list-guid', value: wfApplicationsListGuid }
+        { name: 'workforce-templates-list-guid', value: wfTemplatesListGuid }
       ]
     }
     template: {
@@ -144,6 +147,7 @@ resource workforceapi 'Microsoft.App/containerApps@2023-11-02-preview' = {
             { name: 'WF_PHOTOS_SERVICE_BASE_URL', secretRef: 'wf-photos-service-base-url' }
             { name: 'WORKFORCE_PHOTOS_LIST_TITLE', secretRef: 'workforce-photos-list-title' }
             { name: 'WORKFORCE_APPLICATIONS_LIST_GUID', secretRef: 'workforce-applications-list-guid' }
+            { name: 'WORKFORCE_TEMPLATES_LIST_GUID', secretRef: 'workforce-templates-list-guid' }
           ]
         }
       ]

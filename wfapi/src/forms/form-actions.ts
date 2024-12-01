@@ -6,9 +6,9 @@ import {
   OtherDataRequirements,
   UnverifiedFormSubmissionWithSpec,
   VerifiedFormSubmissionStatus,
-} from "./form";
+} from "../interfaces/form";
 import { determineFormSubmissionStatusFollowingRetraction } from "./form-validation";
-import { FormProvider } from "./providers/form-provider";
+import { FormsRepository } from "../model/forms-repository";
 import { mergeSubmissionWithSpec } from "./forms";
 import { Profile } from "../interfaces/profile";
 
@@ -91,7 +91,7 @@ export const getOtherData =
 
 const doSubmitAction =
   (profile: Profile) => (formSubmission: FormSubmissionWithSpecAndActions) =>
-    FormProvider.pipe(
+    FormsRepository.pipe(
       Effect.andThen((provider) =>
         provider.updateFormSubmissionStatusByFormProviderSubmissionId(
           formSubmission.formProviderId,
@@ -112,7 +112,7 @@ const doSubmitAction =
 
 const doRetractAction =
   (profile: Profile) => (formSubmission: FormSubmissionWithSpecAndActions) =>
-    FormProvider.pipe(
+    FormsRepository.pipe(
       Effect.andThen((provider) =>
         provider.updateFormSubmissionStatusByFormProviderSubmissionId(
           formSubmission.formProviderId,

@@ -6,7 +6,7 @@ import {
   FormSubmissionWithSpec,
   UnverifiedFormSubmissionWithSpec,
   VerifiedFormSubmissionStatus,
-} from "./form";
+} from "../interfaces/form";
 import { Profile, WithProfile } from "../interfaces/profile";
 
 const isFormAnswersValid = (

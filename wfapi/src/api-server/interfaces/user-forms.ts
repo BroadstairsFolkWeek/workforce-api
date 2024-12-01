@@ -1,6 +1,9 @@
 import { Schema as S } from "@effect/schema";
 import { z } from "zod";
-import { Template, FormSubmissionWithSpecAndActions } from "../../forms/form";
+import {
+  Template,
+  FormSubmissionWithSpecAndActions,
+} from "../../interfaces/form";
 
 export const putFormParamsSchema = z.object({
   userId: z.string().brand("UserId"),

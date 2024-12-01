@@ -16,7 +16,7 @@ import {
 } from "./interfaces/user-forms";
 import { runWfApiEffect } from "./effect-runner";
 import { postCreatableFormParamsSchema } from "./interfaces/user-templates";
-import { TemplateId } from "../forms/form";
+import { TemplateId } from "../interfaces/form";
 import { ApiInvalidRequest } from "./interfaces/api";
 import { UserId } from "../interfaces/user";
 

@@ -75,4 +75,5 @@ jobs:
             workforceProfilesListGuid=${{ vars.WORKFORCE_PROFILES_LIST_GUID_DEV }}
             workforceLoginsListGuid=${{ vars.WORKFORCE_LOGINS_LIST_GUID_DEV }}
             wfApplicationsListGuid=${{ vars.WORKFORCE_APPLICATIONS_LIST_GUID_DEV }}
+            wfTemplatesListGuid=${{ vars.WORKFORCE_TEMPLATES_LIST_GUID_DEV }}
             wfPhotosServiceBaseUrl=${{ vars.WORKFORCE_PHOTOS_SERVICE_BASE_URL_DEV }}

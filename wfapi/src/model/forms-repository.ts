@@ -1,6 +1,5 @@
-import { Context, Effect } from "effect";
-import { FormSpecNotFound } from "../form-provider";
-import { ModelProfileId } from "../../../model/interfaces/profile";
+import { Context, Data, Effect } from "effect";
+import { ModelProfileId } from "./interfaces/profile";
 import {
   FormProviderId,
   FormProviderSubmissionId,
@@ -8,13 +7,19 @@ import {
   TemplateId,
   UnverifiedFormSubmission,
   VerifiedFormSubmissionStatus,
-} from "../../form";
-import { FormSubmissionNotFound } from "../../forms";
+} from "../interfaces/form";
+import { FormSubmissionNotFound } from "../forms/forms";
 
-export class WfApplicationFormProvider extends Context.Tag(
-  "WfApplicationFormProvider"
-)<
-  WfApplicationFormProvider,
+export class FormSpecNotFound extends Data.TaggedClass("FormSpecNotFound")<{
+  readonly formSpecId: TemplateId;
+}> {}
+
+export class FormProviderNotMatched extends Data.TaggedClass(
+  "FormProviderNotMatched"
+) {}
+
+export class FormsRepository extends Context.Tag("FormsRepository")<
+  FormsRepository,
   {
     getCreatableFormSpecs: (
       profileId: ModelProfileId

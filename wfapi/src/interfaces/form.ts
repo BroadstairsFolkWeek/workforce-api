@@ -10,7 +10,7 @@ export type UserCreatableFormAction = S.Schema.Type<
 >;
 
 export const OtherDataRequirements = S.Struct({
-  profileRequirements: S.Array(S.String),
+  profileRequirements: S.optional(S.Array(S.String)),
   profilePhotoRequired: S.optional(S.Boolean),
 });
 export interface OtherDataRequirements
@@ -35,7 +35,7 @@ type LayoutItem =
       orientation: "horizontal" | "vertical";
       items: readonly LayoutItem[];
     };
-const LayoutItem = S.Union(
+export const LayoutItem = S.Union(
   ...NonRecursiveLayoutItem.members,
   S.TaggedStruct("Group", {
     orientation: S.Literal("horizontal", "vertical"),
@@ -43,16 +43,22 @@ const LayoutItem = S.Union(
   })
 );
 
+export const TemplateConstraints = S.Struct({
+  maxFormsPerProfile: S.Number,
+});
+
+export const TemplateStatus = S.Literal("draft", "active", "archived");
+
 export const Template = S.Struct({
-  formProviderId: FormProviderId,
-  formProviderSpecId: FormProviderSpecId,
   id: TemplateId,
+  version: S.Number,
   shortName: S.String,
   fullName: S.String,
-  description: S.String,
+  description: S.optional(S.String),
   questions: S.Unknown,
   otherDataRequirements: OtherDataRequirements,
-  status: S.Literal("draft", "active", "archived"),
+  constraints: TemplateConstraints,
+  status: TemplateStatus,
   listItemLayout: LayoutItem,
   detailsLayout: LayoutItem,
 });
